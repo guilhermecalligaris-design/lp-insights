@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Allu — Inteligência Operacional V6</title>
+  <meta name="description" content="Growth Intelligence Dashboard para Allu — análise GA4 com filtros dinâmicos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-top-row">
+        <div class="brand">
+          <div class="logo-circle">a.</div>
+          <div class="brand-text"><h1>Inteligência Operacional</h1><p class="subtitle">Growth Intelligence Dashboard</p></div>
+        </div>
+        <div class="header-controls">
+          <div class="theme-toggle">
+            <button class="theme-btn" data-theme="light" title="Light">☀️</button>
+            <button class="theme-btn active" data-theme="dark" title="Dark">🌙</button>
+            <button class="theme-btn" data-theme="medium" title="Medium">🌓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- V6 Filters — Row 1: Dates -->
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Período Principal</label>
+          <div class="date-flex">
+            <input type="date" id="filter-date-start" value="2026-02-09">
+            <span class="date-sep">até</span>
+            <input type="date" id="filter-date-end" value="2026-03-11">
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Comparativo</label>
+          <select id="filter-compare">
+            <option value="prev_period">Período Anterior (mesmo nº dias)</option>
+            <option value="prev_month_dates">Mês Anterior (dias corridos)</option>
+            <option value="prev_month_days">Mês Anterior (dia da semana)</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Source / Medium</label>
+          <select id="filter-source">
+            <option value="all">Todos os Canais</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Brand / Category</label>
+          <select id="filter-category">
+            <option value="all">Todas</option>
+            <option value="Smartphones">Smartphones</option>
+            <option value="Consoles">Consoles</option>
+            <option value="Notebooks">Notebooks</option>
+            <option value="Wearables">Wearables</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Produto</label>
+          <select id="filter-product">
+            <option value="">Todos os Produtos</option>
+          </select>
+        </div>
+        <div class="filter-group filter-action">
+          <button id="btn-apply-filters">Aplicar Filtros</button>
+        </div>
+      </div>
+    </div>
+    <div class="period-badge" id="period-badge">Carregando dados...</div>
+  </header>
+
+  <main class="main">
+
+    <!-- Seção 1: Scorecard -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2>Executive Scorecard</h2>
+        <span class="section-subtitle">Saúde de Tráfego, Receita, Investimento e Funil</span>
+      </div>
+      <div class="investment-row">
+        <span>💰 Investimento Total (Google + Meta) do período: R$</span>
+        <input type="number" id="input-investment" value="75000" step="1000">
+        <button id="btn-update-invest" class="update-btn">Atualizar</button>
+      </div>
+      <div class="scorecard-layout" id="scorecard-layout"></div>
+          <div class="insight-box exec-summary" id="scorecard-summary" style="margin-top:20px"></div>
+      <div class="insight-box" id="scorecard-insight" style="margin-top:10px"></div>
+    </section>
+
+    <!-- Seção 2: Canais -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">02</span><h2>Canais de Aquisição</h2><span class="section-subtitle">Volumes, Share, Conv Rate e Receita</span></div>
+      <h3 class="subsection-title">Agrupamento Padrão (Default Channel Grouping)</h3>
+      <div class="table-wrapper mb-20">
+        <table class="data-table" id="table-channel-groups">
+          <thead><tr>
+            <th>Agrupamento</th><th>Sessões + Δ</th><th>Purchases + Δ</th><th>Conv Rate + Δ</th>
+            <th>Share Sessões</th><th>Share Compras</th><th>Receita + Δ</th><th>Share Receita</th><th>Eng Rate + Δ</th><th>Avg Duration</th>
+          </tr></thead>
+          <tbody id="channel-groups-tbody"></tbody>
+          <tfoot id="channel-groups-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="insight-box" id="channel-groups-insight" style="margin-bottom:30px"></div>
+
+      <h3 class="subsection-title">Source / Medium (Visão Granular)</h3>
+      <div class="table-wrapper">
+        <table class="data-table" id="table-source-medium">
+          <thead><tr>
+            <th>#</th><th>Canal</th><th>Grupo</th><th>Sessões + Δ</th><th>Purchases + Δ</th>
+            <th>Conv Rate + Δ</th><th>Share Sessões</th><th>Share Compras</th><th>Receita + Δ</th><th>Share Receita</th><th>Eng Rate + Δ</th><th>Avg Duration</th>
+          </tr></thead>
+          <tbody id="channels-tbody"></tbody>
+          <tfoot id="channels-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="insight-box" id="channels-insight" style="margin-top:16px"></div>
+    </section>
+
+    <!-- Seção 3: Golden Path -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">03</span><h2>Golden Path Actions</h2><span class="section-subtitle">Hipóteses Se-Então-Porque (Ticket R$390)</span></div>
+      <div id="funnel-actions"></div>
+    </section>
+
+    <!-- Seção 4: Money Leaks -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">04</span><h2>Money Leaks</h2><span class="section-subtitle">Fricção por Etapa do Funil</span></div>
+      <div class="insight-box" id="leaks-insight" style="margin-bottom:14px"></div>
+      <div id="leaks-grid" class="friction-grid"></div>
+    </section>
+
+    <!-- Seção 5: Devices -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">05</span><h2>Dispositivos</h2><span class="section-subtitle">Ações UX por Plataforma</span></div>
+      <div class="insight-box" id="devices-insight" style="margin-bottom:14px"></div>
+      <div class="device-grid" id="device-grid"></div>
+    </section>
+
+    <!-- Seção 6: Audiência -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">06</span><h2>Audiência Regional</h2><span class="section-subtitle">Estados e Cidades com Variações</span></div>
+      <div class="audience-grid mb-20">
+        <div class="audience-card"><h3>Top Regiões (Estados)</h3>
+          <div class="table-wrapper" style="border:none;max-height:420px;overflow-y:auto">
+            <table class="data-table compact"><thead><tr><th>Região</th><th>Sessões (Δ)</th><th>Compras (Δ)</th><th>Receita (Δ)</th><th>Conv Rate</th><th>Sh(S)</th><th>Sh(C)</th></tr></thead>
+            <tbody id="regions-tbody"></tbody></table>
+          </div>
+        </div>
+        <div class="audience-card"><h3>Top Cidades</h3>
+          <div class="table-wrapper" style="border:none;max-height:420px;overflow-y:auto">
+            <table class="data-table compact"><thead><tr><th>Cidade</th><th>Sessões (Δ)</th><th>Compras (Δ)</th><th>Receita (Δ)</th><th>Conv Rate</th><th>Sh(S)</th><th>Sh(C)</th></tr></thead>
+            <tbody id="cities-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <div id="audience-topflop" style="margin-top:16px"></div>
+    </section>
+
+    <!-- Seção 7: Perfil & Segments -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">07</span><h2>Perfil & Power Segments</h2><span class="section-subtitle">Comportamento Qualitativo e Segmentos Alvo</span></div>
+      <div class="customer-profile-box" id="customer-profile"></div>
+      <h3 class="subsection-title" style="margin-top:24px">Audience Power Segments</h3>
+      <div class="segments-grid" id="segments-grid"></div>
+    </section>
+
+    <!-- Seção 8: Produtos -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">08</span><h2>Produtos</h2><span class="section-subtitle">Receita (itemRevenue), Share, Views e Compras</span></div>
+      <div class="table-wrapper mb-20">
+        <table class="data-table"><thead><tr>
+          <th>#</th><th>Produto</th><th>Categoria</th><th>Views + Δ</th><th>Sh Views</th><th>Compras + Δ</th>
+          <th>Conv Rate + Δ</th><th>Eng Rate</th><th>Duração</th><th>Receita + Δ</th><th>Sh Receita</th>
+        </tr></thead>
+        <tbody id="products-tbody"></tbody>
+        <tfoot id="products-tfoot"></tfoot></table>
+      </div>
+      <div id="products-topflop" style="margin-top:16px"></div>
+    </section>
+
+    <!-- Seção 8b: Categorias -->
+    <section class="section">
+      <div class="section-header"><span class="section-number">8b</span><h2>Categorias</h2><span class="section-subtitle">Mix de Produtos por Categoria</span></div>
+      <div class="table-wrapper">
+        <table class="data-table"><thead><tr>
+          <th>Categoria</th><th>Views + Δ</th><th>Sh Views</th><th>Compras + Δ</th>
+          <th>Conv Rate</th><th>Duração</th><th>Receita + Δ</th><th>Sh Receita</th>
+        </tr></thead>
+        <tbody id="categories-tbody"></tbody>
+        <tfoot id="categories-tfoot"></tfoot></table>
+      </div>
+      <div id="categories-topflop" style="margin-top:16px"></div>
+    </section>
+
+  </main>
+  <footer class="footer"><p>allu Growth Partner Dashboard V6.1 · Gerado em 11/Mar/2026</p></footer>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
