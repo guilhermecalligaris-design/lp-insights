@@ -1,24 +1,24 @@
 // ============================================================
-// V6.2 — Data Engine — Expanded Sources, Campaigns, Products
+// V6.3 — Data Engine — Fixed Variations + Calibrated Revenue
 // ============================================================
 
 window.ALLU_CONTEXT = {
   channels: [
-    { name:"meta / paid_social", group:"Paid Social", shareS:0.38, cr:0.0015, bounce:0.06, eng:0.98, dur:120, revMul:0.18 },
-    { name:"google / cpc", group:"Paid Search", shareS:0.14, cr:0.0090, bounce:0.04, eng:0.97, dur:240, revMul:0.28 },
-    { name:"(direct) / (none)", group:"Direct", shareS:0.11, cr:0.0110, bounce:0.03, eng:0.98, dur:300, revMul:0.18 },
-    { name:"ig / organic_social", group:"Organic Social", shareS:0.06, cr:0.0048, bounce:0.05, eng:0.99, dur:160, revMul:0.05 },
-    { name:"google / organic", group:"Organic Search", shareS:0.05, cr:0.0095, bounce:0.03, eng:0.97, dur:260, revMul:0.09 },
-    { name:"tiktok / paid_social", group:"Paid Social", shareS:0.04, cr:0.0008, bounce:0.08, eng:0.98, dur:90, revMul:0.02 },
-    { name:"(not set)", group:"Unassigned", shareS:0.04, cr:0.0020, bounce:0.91, eng:0.09, dur:15, revMul:0.01 },
-    { name:"parcerias / referral", group:"Referral", shareS:0.03, cr:0.0008, bounce:0.05, eng:0.98, dur:110, revMul:0.02 },
-    { name:"bing / cpc", group:"Paid Search", shareS:0.025, cr:0.0085, bounce:0.04, eng:0.96, dur:230, revMul:0.04 },
-    { name:"email / newsletter", group:"Email", shareS:0.02, cr:0.0180, bounce:0.02, eng:0.99, dur:280, revMul:0.05 },
-    { name:"whatsapp / organic_social", group:"Organic Social", shareS:0.018, cr:0.0200, bounce:0.03, eng:0.98, dur:200, revMul:0.03 },
-    { name:"kwai / paid_social", group:"Paid Social", shareS:0.015, cr:0.0005, bounce:0.10, eng:0.96, dur:70, revMul:0.01 },
-    { name:"youtube / paid_video", group:"Paid Video", shareS:0.012, cr:0.0012, bounce:0.07, eng:0.97, dur:95, revMul:0.01 },
-    { name:"criteo / retargeting", group:"Display", shareS:0.01, cr:0.0060, bounce:0.05, eng:0.94, dur:130, revMul:0.02 },
-    { name:"sms / push", group:"Push", shareS:0.008, cr:0.0140, bounce:0.04, eng:0.97, dur:180, revMul:0.01 },
+    { name:"meta / paid_social", group:"Paid Social", shareS:0.38, cr:0.0015, bounce:0.06, eng:0.98, dur:120 },
+    { name:"google / cpc", group:"Paid Search", shareS:0.14, cr:0.0090, bounce:0.04, eng:0.97, dur:240 },
+    { name:"(direct) / (none)", group:"Direct", shareS:0.11, cr:0.0110, bounce:0.03, eng:0.98, dur:300 },
+    { name:"ig / organic_social", group:"Organic Social", shareS:0.06, cr:0.0048, bounce:0.05, eng:0.99, dur:160 },
+    { name:"google / organic", group:"Organic Search", shareS:0.05, cr:0.0095, bounce:0.03, eng:0.97, dur:260 },
+    { name:"tiktok / paid_social", group:"Paid Social", shareS:0.04, cr:0.0008, bounce:0.08, eng:0.98, dur:90 },
+    { name:"(not set)", group:"Unassigned", shareS:0.04, cr:0.0020, bounce:0.91, eng:0.09, dur:15 },
+    { name:"parcerias / referral", group:"Referral", shareS:0.03, cr:0.0008, bounce:0.05, eng:0.98, dur:110 },
+    { name:"bing / cpc", group:"Paid Search", shareS:0.025, cr:0.0085, bounce:0.04, eng:0.96, dur:230 },
+    { name:"email / newsletter", group:"Email", shareS:0.02, cr:0.0180, bounce:0.02, eng:0.99, dur:280 },
+    { name:"whatsapp / organic_social", group:"Organic Social", shareS:0.018, cr:0.0200, bounce:0.03, eng:0.98, dur:200 },
+    { name:"kwai / paid_social", group:"Paid Social", shareS:0.015, cr:0.0005, bounce:0.10, eng:0.96, dur:70 },
+    { name:"youtube / paid_video", group:"Paid Video", shareS:0.012, cr:0.0012, bounce:0.07, eng:0.97, dur:95 },
+    { name:"criteo / retargeting", group:"Display", shareS:0.01, cr:0.0060, bounce:0.05, eng:0.94, dur:130 },
+    { name:"sms / push", group:"Push", shareS:0.008, cr:0.0140, bounce:0.04, eng:0.97, dur:180 },
   ],
   campaigns: [
     { name:"allu_acquisition_iphone17_br", share:0.22 },
@@ -62,26 +62,28 @@ window.ALLU_CONTEXT = {
     { name:"Goiânia", share:0.015, crMod:0.65, dur:149 },
   ],
   products: [
-    { name:"iPhone 17 Pro Max 256GB", category:"Smartphones", shareV:0.14, cr:0.0053, price:4500, dur:200 },
-    { name:"iPhone 17 Pro 128GB", category:"Smartphones", shareV:0.12, cr:0.0051, price:4100, dur:190 },
-    { name:"iPhone 16 128GB", category:"Smartphones", shareV:0.08, cr:0.0075, price:2800, dur:160 },
-    { name:"iPhone 15 128GB", category:"Smartphones", shareV:0.07, cr:0.0078, price:2200, dur:150 },
-    { name:"Samsung Galaxy S25 5G", category:"Smartphones", shareV:0.05, cr:0.0160, price:2600, dur:180 },
-    { name:"iPhone 16 Pro Max 256GB", category:"Smartphones", shareV:0.04, cr:0.0100, price:3500, dur:195 },
-    { name:"PS5 Slim Digital", category:"Consoles", shareV:0.04, cr:0.0168, price:1500, dur:210 },
-    { name:"iPhone 17 Pro 256GB", category:"Smartphones", shareV:0.035, cr:0.0048, price:4700, dur:195 },
-    { name:"PS5 Pro", category:"Consoles", shareV:0.025, cr:0.0115, price:2200, dur:220 },
-    { name:"Nintendo Switch OLED", category:"Consoles", shareV:0.02, cr:0.0190, price:1200, dur:175 },
-    { name:"MacBook Air M3", category:"Notebooks", shareV:0.018, cr:0.008, price:5800, dur:280 },
-    { name:"Notebook Acer TravelMate i5", category:"Notebooks", shareV:0.015, cr:0.0250, price:1800, dur:260 },
-    { name:"Apple Watch Series 10", category:"Wearables", shareV:0.015, cr:0.0120, price:1500, dur:140 },
-    { name:"Samsung Galaxy Watch 7", category:"Wearables", shareV:0.012, cr:0.0100, price:1100, dur:130 },
-    { name:"AirPods Pro 3", category:"Wearables", shareV:0.01, cr:0.0200, price:900, dur:100 },
-    { name:"iPad Air M2", category:"Tablets", shareV:0.01, cr:0.0080, price:3200, dur:240 },
-    { name:"Samsung Galaxy S24 FE", category:"Smartphones", shareV:0.01, cr:0.0140, price:1900, dur:155 },
-    { name:"Notebook Lenovo IdeaPad i7", category:"Notebooks", shareV:0.008, cr:0.0220, price:2400, dur:250 },
+    { name:"iPhone 17 Pro Max 256GB", category:"Smartphones", shareV:0.14, cr:0.0053, subPrice:399, dur:200 },
+    { name:"iPhone 17 Pro 128GB", category:"Smartphones", shareV:0.12, cr:0.0051, subPrice:369, dur:190 },
+    { name:"iPhone 16 128GB", category:"Smartphones", shareV:0.08, cr:0.0075, subPrice:279, dur:160 },
+    { name:"iPhone 15 128GB", category:"Smartphones", shareV:0.07, cr:0.0078, subPrice:229, dur:150 },
+    { name:"Samsung Galaxy S25 5G", category:"Smartphones", shareV:0.05, cr:0.0160, subPrice:259, dur:180 },
+    { name:"iPhone 16 Pro Max 256GB", category:"Smartphones", shareV:0.04, cr:0.0100, subPrice:359, dur:195 },
+    { name:"PS5 Slim Digital", category:"Consoles", shareV:0.04, cr:0.0168, subPrice:149, dur:210 },
+    { name:"iPhone 17 Pro 256GB", category:"Smartphones", shareV:0.035, cr:0.0048, subPrice:429, dur:195 },
+    { name:"PS5 Pro", category:"Consoles", shareV:0.025, cr:0.0115, subPrice:199, dur:220 },
+    { name:"Nintendo Switch OLED", category:"Consoles", shareV:0.02, cr:0.0190, subPrice:119, dur:175 },
+    { name:"MacBook Air M3", category:"Notebooks", shareV:0.018, cr:0.008, subPrice:449, dur:280 },
+    { name:"Notebook Acer TravelMate i5", category:"Notebooks", shareV:0.015, cr:0.0250, subPrice:189, dur:260 },
+    { name:"Apple Watch Series 10", category:"Wearables", shareV:0.015, cr:0.0120, subPrice:129, dur:140 },
+    { name:"Samsung Galaxy Watch 7", category:"Wearables", shareV:0.012, cr:0.0100, subPrice:99, dur:130 },
+    { name:"AirPods Pro 3", category:"Wearables", shareV:0.01, cr:0.0200, subPrice:79, dur:100 },
+    { name:"iPad Air M2", category:"Tablets", shareV:0.01, cr:0.0080, subPrice:299, dur:240 },
+    { name:"Samsung Galaxy S24 FE", category:"Smartphones", shareV:0.01, cr:0.0140, subPrice:199, dur:155 },
+    { name:"Notebook Lenovo IdeaPad i7", category:"Notebooks", shareV:0.008, cr:0.0220, subPrice:219, dur:250 },
   ],
-  funnelDrops: { pv:1.0, vi:0.38, atc:0.031, chk:0.020, pi:0.017, si:0.013, pur:0.0065 }
+  // Funnel retention rates (% who proceed from page_view)
+  // Includes add_payment_info as per Allu's actual funnel
+  funnelRates: { pv:1.0, vi:0.38, atc:0.083, chk:0.054, pi:0.046, si:0.035, api:0.022, pur:0.0138 }
 };
 
 // Seeded PRNG
@@ -98,10 +100,15 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
   else if(compareMode === "prev_month_days"){ prevStart.setDate(start.getDate()-28); prevEnd.setDate(end.getDate()-28); }
 
   const gen = (dStart, dEnd, dCount) => {
-    let sg = getSeed(dStart.toISOString()+sourceFilter+catFilter+prodFilter+(campaignFilter||""));
+    const seedStr = dStart.toISOString().slice(0,10) + "|" + dEnd.toISOString().slice(0,10) + "|" + (sourceFilter||"") + "|" + (catFilter||"") + "|" + (prodFilter||"") + "|" + (campaignFilter||"");
+    let sg = getSeed(seedStr);
     let rand = sfc32(sg(),sg(),sg(),sg());
-    const epoch = new Date("2026-01-01").getTime();
-    const trendMod = 1 + ((dStart.getTime()-epoch)/86400000)*0.002;
+
+    // Period-level seasonal multiplier (creates real variation between periods)
+    const monthNum = dStart.getMonth();
+    const dayOfMonth = dStart.getDate();
+    const periodNoise = rand(); // unique per period due to different seed
+    const seasonal = 1.0 + (monthNum === 0 ? -0.08 : monthNum === 1 ? 0.05 : monthNum === 2 ? 0.12 : 0.03);
 
     let sourceMult = 1.0;
     const CTX = window.ALLU_CONTEXT;
@@ -120,36 +127,42 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
     if(prodFilter && prodFilter !== "") activeProds = activeProds.filter(p=>p.name===prodFilter);
     if((catFilter && catFilter!=="all")||prodFilter) { prodMult = activeProds.reduce((s,p)=>s+p.shareV,0)||0.001; }
 
-    const dailyBase = 50000 * trendMod * sourceMult * campMult * prodMult;
+    // Calibrated: ~60K sessions/day for full site ≈ R$100K/day revenue
+    const dailyBase = 60000 * seasonal * (0.85 + periodNoise * 0.30) * sourceMult * campMult * prodMult;
     const sparklines=[];
     let totS=0,totU=0,totEng=0,totBounce=0,totDur=0;
 
     for(let i=0;i<dCount;i++){
       const d=new Date(dStart);d.setDate(d.getDate()+i);
-      const isWE=d.getDay()===0||d.getDay()===6;
-      const dv=0.8+(rand()*0.4)+(isWE?0.15:0);
-      const sess=Math.round(dailyBase*dv);
-      const users=Math.round(sess*(0.65+rand()*0.1));
-      totS+=sess;totU+=users;
-      const engR=0.95*(1-rand()*0.02);const bounceR=1-engR;
-      totEng+=sess*engR;totBounce+=sess*bounceR;totDur+=sess*(150+rand()*50);
+      const dow=d.getDay(); const isWE=dow===0||dow===6;
+      // Day-of-week pattern + strong daily variation
+      const dowFactor = isWE ? (0.85 + rand()*0.1) : (dow===1 ? 1.05 : dow===4 ? 1.1 : 1.0);
+      const dailyNoise = 0.75 + rand()*0.50; // 0.75-1.25 strong daily variation
+      const sess = Math.round(dailyBase * dowFactor * dailyNoise);
+      const users = Math.round(sess * (0.62 + rand()*0.12));
+      totS += sess; totU += users;
+      const engR = 0.935 + rand()*0.025; const bounceR = 1 - engR;
+      totEng += sess*engR; totBounce += sess*bounceR;
+      totDur += sess*(140 + rand()*60);
       sparklines.push({d:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),s:sess,u:users,bounce:bounceR,eng:engR});
     }
 
-    const kpis={sessions:totS,users:totU,newUsers:Math.round(totU*0.35),engagementRate:totEng/(totS||1),bounceRate:totBounce/(totS||1),avgDuration:totDur/(totS||1)};
+    const kpis={sessions:totS,users:totU,newUsers:Math.round(totU*(0.33+rand()*0.06)),engagementRate:totEng/(totS||1),bounceRate:totBounce/(totS||1),avgDuration:totDur/(totS||1)};
 
-    // Channels
+    // Channels — each channel gets its own variation via random
     const channels=[]; const groupsMap={};
     let activeChannels = CTX.channels;
     if(sourceFilter&&sourceFilter!=="all") activeChannels = activeChannels.filter(c=>c.name===sourceFilter);
 
-    let totalRev=0;
+    let totalChRev=0;
     activeChannels.forEach(c=>{
-      const cSess=Math.round(totS*(c.shareS/sourceMult));
-      const cPurch=Math.round(cSess*c.cr*(1+(rand()-0.4)*0.2));
-      const cRev=Math.round(cPurch*3200*(0.8+rand()*0.4));
-      totalRev+=cRev;
-      channels.push({name:c.name,group:c.group,sessions:cSess,purchases:cPurch,engRate:c.eng,avgDuration:c.dur,bounceRate:c.bounce,pageviews:Math.round(cSess*1.5),revenue:cRev});
+      const chNoise = 0.8 + rand()*0.4; // per-channel variation
+      const cSess = Math.round(totS * (c.shareS/sourceMult) * chNoise);
+      const crNoise = 0.7 + rand()*0.6; // per-channel CR variation
+      const cPurch = Math.round(cSess * c.cr * crNoise);
+      const cRev = Math.round(cPurch * (250 + rand()*200)); // avg subscription rev R$250-450
+      totalChRev += cRev;
+      channels.push({name:c.name,group:c.group,sessions:cSess,purchases:cPurch,engRate:c.eng*(0.97+rand()*0.06),avgDuration:c.dur*(0.9+rand()*0.2),bounceRate:c.bounce,pageviews:Math.round(cSess*(1.3+rand()*0.4)),revenue:cRev});
       if(!groupsMap[c.group])groupsMap[c.group]={name:c.group,sessions:0,purchases:0,engSum:0,durSum:0,pv:0,revenue:0};
       groupsMap[c.group].sessions+=cSess;groupsMap[c.group].purchases+=cPurch;
       groupsMap[c.group].engSum+=c.eng*cSess;groupsMap[c.group].durSum+=c.dur*cSess;
@@ -157,47 +170,55 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
     });
     const channelGroups=Object.values(groupsMap).map(g=>({name:g.name,sessions:g.sessions,purchases:g.purchases,engRate:g.engSum/(g.sessions||1),avgDuration:g.durSum/(g.sessions||1),pageviews:g.pv,revenue:g.revenue}));
 
-    // Products
+    // Products — revenue = subscription price, not retail
     const products=[];const catsMap={};
-    let totProdRev=0; let totalProdPurch=0;
+    let totProdRev=0,totalProdPurch=0;
     activeProds.forEach(p=>{
-      const pViews=Math.round(totS*1.5*(p.shareV/prodMult));
-      const pPurch=Math.round(pViews*p.cr*(1+(rand()-0.5)*0.3));
-      const pRev=pPurch*p.price;
-      totProdRev+=pRev; totalProdPurch+=pPurch;
-      products.push({name:p.name,category:p.category,views:pViews,purchases:pPurch,revenue:pRev,engRate:0.95,duration:p.dur});
+      const pNoise = 0.75 + rand()*0.5;
+      const pViews = Math.round(totS*1.5*(p.shareV/prodMult)*pNoise);
+      const crN = 0.7 + rand()*0.6;
+      const pPurch = Math.round(pViews*p.cr*crN);
+      const pRev = pPurch * p.subPrice; // subscription monthly fee
+      totProdRev += pRev; totalProdPurch += pPurch;
+      products.push({name:p.name,category:p.category,views:pViews,purchases:pPurch,revenue:pRev,engRate:0.93+rand()*0.04,duration:p.dur*(0.9+rand()*0.2)});
       if(!catsMap[p.category])catsMap[p.category]={name:p.category,views:0,purchases:0,revenue:0,durSum:0};
       catsMap[p.category].views+=pViews;catsMap[p.category].purchases+=pPurch;catsMap[p.category].revenue+=pRev;catsMap[p.category].durSum+=pViews*p.dur;
     });
     const categories=Object.values(catsMap).map(c=>({name:c.name,views:c.views,purchases:c.purchases,revenue:c.revenue,avgDuration:c.durSum/(c.views||1)}));
 
-    kpis.revenue = totProdRev || totalRev;
+    kpis.revenue = totProdRev || totalChRev;
     kpis.purchases = totalProdPurch || channels.reduce((s,c)=>s+c.purchases,0);
 
-    // Funnel
-    const FD = CTX.funnelDrops;
-    const totalPV = Math.round(totS*1.2);
+    // Funnel (with add_payment_info)
+    const FR = CTX.funnelRates;
+    const totalPV = Math.round(totS * (1.15 + rand()*0.15));
+    // Each rate gets its own noise for real variation
     const funnel = {
-      page_view:totalPV,view_item:Math.round(totalPV*FD.vi),add_to_cart:Math.round(totalPV*FD.atc),
-      begin_checkout:Math.round(totalPV*FD.chk),add_personal_info:Math.round(totalPV*FD.pi),
-      add_shipping_info:Math.round(totalPV*FD.si),purchase:kpis.purchases
+      page_view: totalPV,
+      view_item: Math.round(totalPV * FR.vi * (0.9+rand()*0.2)),
+      add_to_cart: Math.round(totalPV * FR.atc * (0.85+rand()*0.3)),
+      begin_checkout: Math.round(totalPV * FR.chk * (0.85+rand()*0.3)),
+      add_personal_info: Math.round(totalPV * FR.pi * (0.85+rand()*0.3)),
+      add_shipping_info: Math.round(totalPV * FR.si * (0.85+rand()*0.3)),
+      add_payment_info: Math.round(totalPV * FR.api * (0.85+rand()*0.3)),
+      purchase: kpis.purchases
     };
 
     // Regions & Cities
-    const regions=CTX.regions.map(r=>{const rS=Math.round(totS*r.share);const cr=(kpis.purchases/totS)*r.crMod;const rP=Math.round(rS*cr);return{name:r.name,sessions:rS,purchases:rP,revenue:rP*3200,engRate:0.95,avgDuration:r.dur};});
-    const cities=CTX.cities.map(c=>{const cS=Math.round(totS*c.share);const cr=(kpis.purchases/totS)*c.crMod;const cP=Math.round(cS*cr);return{name:c.name,sessions:cS,purchases:cP,revenue:cP*3200,engRate:0.96,avgDuration:c.dur};});
-    const devices=CTX.devices.map(d=>{const dS=Math.round(totS*d.share);const cr=(kpis.purchases/totS)*d.crMod;const dP=Math.round(dS*cr);return{name:d.name,sessions:dS,purchases:dP,engRate:d.eng,avgDuration:d.dur};});
+    const regions=CTX.regions.map(r=>{const rNoise=0.8+rand()*0.4;const rS=Math.round(totS*r.share*rNoise);const cr=(kpis.purchases/totS)*r.crMod*(0.8+rand()*0.4);const rP=Math.round(rS*cr);return{name:r.name,sessions:rS,purchases:rP,revenue:rP*(280+rand()*120),engRate:0.93+rand()*0.04,avgDuration:r.dur};});
+    const cities=CTX.cities.map(c=>{const cNoise=0.8+rand()*0.4;const cS=Math.round(totS*c.share*cNoise);const cr=(kpis.purchases/totS)*c.crMod*(0.8+rand()*0.4);const cP=Math.round(cS*cr);return{name:c.name,sessions:cS,purchases:cP,revenue:cP*(280+rand()*120),engRate:0.94+rand()*0.04,avgDuration:c.dur};});
+    const devices=CTX.devices.map(d=>{const dNoise=0.85+rand()*0.3;const dS=Math.round(totS*d.share*dNoise);const cr=(kpis.purchases/totS)*d.crMod*(0.85+rand()*0.3);const dP=Math.round(dS*cr);return{name:d.name,sessions:dS,purchases:dP,engRate:d.eng*(0.97+rand()*0.06),avgDuration:d.dur*(0.9+rand()*0.2)};});
 
     // Attribution paths
-    const topSourcesSorted = [...channels].sort((a,b)=>b.sessions-a.sessions);
+    const topSources=[...channels].sort((a,b)=>b.sessions-a.sessions);
     const attributionPaths = [
-      { path:`${topSourcesSorted[0]?.name||"meta"} → google / organic → (direct) / (none) → Purchase`, share:0.28, conv:0.018, label:"Social → SEO → Direct" },
-      { path:`google / cpc → (direct) / (none) → Purchase`, share:0.22, conv:0.025, label:"Paid Search → Direct" },
-      { path:`${topSourcesSorted[0]?.name||"meta"} → (direct) / (none) → Purchase`, share:0.18, conv:0.012, label:"Social → Direct" },
-      { path:`google / organic → Purchase`, share:0.12, conv:0.032, label:"Orgânico Direto" },
-      { path:`email / newsletter → Purchase`, share:0.08, conv:0.045, label:"Email Direto" },
-      { path:`${topSourcesSorted[0]?.name||"meta"} → email / newsletter → Purchase`, share:0.07, conv:0.035, label:"Social → Email" },
-      { path:`criteo / retargeting → Purchase`, share:0.05, conv:0.028, label:"Retargeting Direto" },
+      {path:`${topSources[0]?.name||"meta"} → google / organic → (direct) / (none) → Purchase`,share:0.28*(0.9+rand()*0.2),conv:0.018*(0.8+rand()*0.4),label:"Social → SEO → Direct"},
+      {path:`google / cpc → (direct) / (none) → Purchase`,share:0.22*(0.9+rand()*0.2),conv:0.025*(0.8+rand()*0.4),label:"Paid Search → Direct"},
+      {path:`${topSources[0]?.name||"meta"} → (direct) / (none) → Purchase`,share:0.18*(0.9+rand()*0.2),conv:0.012*(0.8+rand()*0.4),label:"Social → Direct"},
+      {path:`google / organic → Purchase`,share:0.12*(0.9+rand()*0.2),conv:0.032*(0.8+rand()*0.4),label:"Orgânico Direto"},
+      {path:`email / newsletter → Purchase`,share:0.08*(0.9+rand()*0.2),conv:0.045*(0.8+rand()*0.4),label:"Email Direto"},
+      {path:`${topSources[0]?.name||"meta"} → email / newsletter → Purchase`,share:0.07*(0.9+rand()*0.2),conv:0.035*(0.8+rand()*0.4),label:"Social → Email"},
+      {path:`criteo / retargeting → Purchase`,share:0.05*(0.9+rand()*0.2),conv:0.028*(0.8+rand()*0.4),label:"Retargeting Direto"},
     ];
 
     return{kpis,sparklines,channels,channelGroups,products,categories,funnel,regions,cities,devices,attributionPaths};

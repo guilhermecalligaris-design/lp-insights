@@ -15,7 +15,7 @@
     <div class="header-inner">
       <div class="header-top-row">
         <div class="brand">
-          <div class="logo-circle">a.</div>
+          <img src="assets/logo.png" alt="allu" class="brand-logo">
           <div class="brand-text"><h1>Inteligência Operacional</h1><p class="subtitle">Growth Intelligence Dashboard</p></div>
         </div>
         <div class="header-controls">
@@ -26,9 +26,11 @@
           </div>
         </div>
       </div>
-      <div class="filters-grid">
-        <div class="filter-group"><label>Período Principal</label><div class="date-flex"><input type="date" id="filter-date-start"><span class="date-sep">até</span><input type="date" id="filter-date-end"></div></div>
-        <div class="filter-group"><label>Comparativo</label><select id="filter-compare"><option value="prev_period">Período Anterior (mesmo nº dias)</option><option value="prev_month_dates">Mês Anterior (dias corridos)</option><option value="prev_month_days">Mês Anterior (dia da semana)</option></select></div>
+      <div class="filters-row-1">
+        <div class="filter-group fg-date"><label>Período Principal</label><div class="date-flex"><input type="date" id="filter-date-start"><span class="date-sep">até</span><input type="date" id="filter-date-end"></div></div>
+        <div class="filter-group fg-compare"><label>Comparativo de Período</label><select id="filter-compare"><option value="prev_period">Período Anterior (mesmo nº dias)</option><option value="prev_month_dates">Mês Anterior (dias corridos)</option><option value="prev_month_days">Mês Anterior (dia da semana)</option></select></div>
+      </div>
+      <div class="filters-row-2">
         <div class="filter-group"><label>Source / Medium</label><select id="filter-source"><option value="all">Todos os Canais</option></select></div>
         <div class="filter-group"><label>Campanha</label><select id="filter-campaign"><option value="all">Todas as Campanhas</option></select></div>
         <div class="filter-group"><label>Brand / Category</label><select id="filter-category"><option value="all">Todas</option></select></div>
@@ -128,7 +130,7 @@
       <div id="growth-projections"></div>
     </section>
   </main>
-  <footer class="footer"><p>allu Growth Partner Dashboard V6.2 · Gerado em 11/Mar/2026</p></footer>
+  <footer class="footer"><p>allu Growth Partner Dashboard V6.3 · Gerado em 12/Mar/2026</p></footer>
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script src="app2.js"></script>
