@@ -79,13 +79,13 @@ function renderKPIs(data){
   const pdi=invest/((c.revenue*12)||1);
   const convRate=c.purchases/(c.sessions||1),prevConvRate=p.purchases/(p.sessions||1);
   const cards=[
-    {l:"Sessões",v:fmtF(c.sessions),d:delta(c.sessions,p.sessions),a:dAbs(c.sessions,p.sessions),s:sp.map(x=>x.s),cf:"#2ECB6F"},
-    {l:"Usuários Ativos",v:fmtF(c.users),d:delta(c.users,p.users),a:dAbs(c.users,p.users),s:sp.map(x=>x.u),cf:"#3B82F6"},
+    {l:"Sessões",v:fmtF(c.sessions),d:delta(c.sessions,p.sessions),a:dAbs(c.sessions,p.sessions),s:sp.sessoes||[],cf:"#2ECB6F"},
+    {l:"Usuários Ativos",v:fmtF(c.users),d:delta(c.users,p.users),a:dAbs(c.users,p.users),s:sp.users||[],cf:"#3B82F6"},
     {l:"Novos Usuários",v:fmtF(c.newUsers),d:delta(c.newUsers,p.newUsers),a:dAbs(c.newUsers,p.newUsers)},
     {l:"Purchases (Pedidos Brutos)",v:fmtF(c.purchases),d:delta(c.purchases,p.purchases),a:dAbs(c.purchases,p.purchases),cf:"#8B5CF6"},
     {l:"Taxa de Conversão",v:pct(convRate),d:delta(convRate,prevConvRate),a:"Purchases ÷ Sessions",cf:"#A855F7"},
-    {l:"Engajamento",v:pct1(c.engagementRate),d:delta(c.engagementRate,p.engagementRate),s:sp.map(x=>x.eng),cf:"#2ECB6F"},
-    {l:"Bounce Rate",v:pct1(c.bounceRate),d:delta(c.bounceRate,p.bounceRate,true),s:sp.map(x=>x.bounce),cf:"#EF4444"},
+    {l:"Engajamento",v:pct1(c.engagementRate),d:delta(c.engagementRate,p.engagementRate),s:sp.engagement||[],cf:"#2ECB6F"},
+    {l:"Bounce Rate",v:pct1(c.bounceRate),d:delta(c.bounceRate,p.bounceRate,true),s:sp.bounce||[],cf:"#EF4444"},
     {l:"Duração Média",v:fmtDur(c.avgDuration),d:delta(c.avgDuration,p.avgDuration)},
     {l:"Receita Bruta (purchaseRevenue)",v:fmtMoney(c.revenue),d:delta(c.revenue,p.revenue),a:dAbs(c.revenue,p.revenue),cf:"#F59E0B"},
     {l:"Investimento (Ads)",v:fmtMoney(invest),d:{text:"input manual",cls:"neutral"}},
