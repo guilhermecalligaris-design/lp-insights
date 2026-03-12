@@ -67,7 +67,6 @@ h1,h2,h3,h4,.kpi-value,.kpi-label,.section-number,.brand-text h1{font-family:'Pl
 
 /* Filters — 2 Row Layout (no overlap) */
 .filters-row-1,.filters-row-2{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:10px;}
-.filters-row-1{}
 .fg-date{flex:0 0 auto;}
 .fg-compare{flex:1 1 200px;min-width:200px;}
 .filter-group{display:flex;flex-direction:column;gap:4px;min-width:140px;flex:1;}
