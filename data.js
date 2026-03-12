@@ -2329,7 +2329,7 @@ window.UTM_MEDIUM_OVERRIDES = {
 
 // Main function to return real GA4 data
 // Replaces the old random simulation engine
-function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFilter, prodFilter, campaignFilter) {
+function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFilter, prodFilter, campaignFilter, canalFilter, grupoFilter) {
   const processPeriod = (period) => {
     if (!period) {
       return {
@@ -2340,8 +2340,10 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
       };
     }
 
-    const kpis = period.kpis || { sessions: 0, users: 0, purchases: 0, revenue: 0, engagementRate: 0, bounceRate: 0, avgDuration: 0 };
-    const funnel = period.funnel || { page_view: 0, view_item: 0, add_to_cart: 0, begin_checkout: 0, add_personal_info: 0, add_shipping_info: 0, add_payment_info: 0, purchase: 0 };
+    const rawKpis = period.kpis || { sessions: 0, users: 0, purchases: 0, revenue: 0, engagementRate: 0, bounceRate: 0, avgDuration: 0 };
+    const kpis = { ...rawKpis };
+    const rawFunnel = period.funnel || { page_view: 0, view_item: 0, add_to_cart: 0, begin_checkout: 0, add_personal_info: 0, add_shipping_info: 0, add_payment_info: 0, purchase: 0 };
+    const funnel = { ...rawFunnel };
     const sparklines = period.sparklines || { sessoes: [], users: [], purchases: [], rev: [], engagement: [], duration: [] };
 
     // Transform Devices to Array
@@ -2445,6 +2447,8 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
       };
 
       if (sourceFilter && sourceFilter !== 'all' && ch.name !== sourceFilter) return;
+      if (canalFilter && canalFilter !== 'all' && ch.canal !== canalFilter) return;
+      if (grupoFilter && grupoFilter !== 'all' && ch.grupo !== grupoFilter) return;
 
       channels.push(ch);
 
@@ -2472,10 +2476,22 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
     channels.sort((a,b) => b.sessions - a.sessions);
     
     // Update totals if a filter is applied
-    if (sourceFilter && sourceFilter !== 'all') {
+    const hasFilter = (sourceFilter && sourceFilter !== 'all') || (canalFilter && canalFilter !== 'all') || (grupoFilter && grupoFilter !== 'all') || (campaignFilter && campaignFilter !== 'all');
+    if (hasFilter) {
       kpis.sessions = channels.reduce((sum, c) => sum + c.sessions, 0);
       kpis.purchases = channels.reduce((sum, c) => sum + c.purchases, 0);
       kpis.revenue = channels.reduce((sum, c) => sum + c.revenue, 0);
+      
+      const ratio = rawKpis.sessions ? (kpis.sessions / rawKpis.sessions) : 0;
+      kpis.users = Math.round((rawKpis.users || 0) * ratio);
+      kpis.newUsers = Math.round((rawKpis.newUsers || 0) * ratio);
+      kpis.engagementRate = channels.reduce((sum, c) => sum + (c.engRate * c.sessions), 0) / (kpis.sessions || 1);
+      kpis.bounceRate = 1 - kpis.engagementRate;
+      kpis.avgDuration = channels.reduce((sum, c) => sum + (c.avgDuration * c.sessions), 0) / (kpis.sessions || 1);
+      
+      Object.keys(funnel).forEach(k => {
+        funnel[k] = Math.round((rawFunnel[k] || 0) * ratio);
+      });
     }
 
     return {

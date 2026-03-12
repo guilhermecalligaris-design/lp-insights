@@ -44,7 +44,7 @@ function applyFilters(){
   const s=document.getElementById("filter-date-start").value,e=document.getElementById("filter-date-end").value;
   if(!s||!e)return;
   const F=window._filters;
-  const data=window.V6_ENGINE.buildDashboardData(s,e,document.getElementById("filter-compare").value,F.source.getValue(),F.category.getValue(),F.product.getValue(),F.campaign.getValue());
+  const data=window.V6_ENGINE.buildDashboardData(s,e,document.getElementById("filter-compare").value,F.source.getValue(),F.category.getValue(),F.product.getValue(),F.campaign.getValue(),F.canal.getValue(),F.grupo.getValue());
   window._lastData=data;
   document.getElementById("period-badge").textContent=`Base GA4 Engine | Período: ${data.currentText} | Comparação: ${data.previousText}`;
   renderAll(data);
