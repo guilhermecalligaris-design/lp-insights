@@ -1,4 +1,4 @@
-// V6.5 — App Core + Searchable Filters + Charts + Sections 1–5
+// V6.6 — App Core + Searchable Filters + Charts + Sections 1–5
 // ====================================================
 
 // ---- Searchable Select Component ----
@@ -119,10 +119,11 @@ function renderKPIs(data){
   const worstStepIdx=fStepRets.slice(1).reduce((w,v,i)=>v<fStepRets[w+1]?i:w,0)+1;
   const bestStepIdx=fStepRets.slice(1).reduce((w,v,i)=>v>fStepRets[w+1]?i:w,0)+1;
   const overallCR=fVals[fVals.length-1]/(fVals[0]||1);
+  const ticket=c.revenue/(c.purchases||1);
   const sessD=delta(c.sessions,p.sessions),revD=delta(c.revenue,p.revenue);
 
   document.getElementById("scorecard-summary").innerHTML=`<p><strong>📊 Resumo Executivo:</strong> ${fmtF(c.sessions)} sessões (${sessD.text} vs anterior) geraram <strong>${fmtMoney(c.revenue)}</strong> em purchaseRevenue (${revD.text}). Foram <strong>${fmtF(c.purchases)} purchases</strong> (Conv Rate ${pct(convRate)}). CPA = ${fmtMoney(cpa)}, PDI = ${pct(pdi)} ${pdi<=0.095?"✅":"⚠️ acima de 9.5%!"}.</p>
-  <p><strong>📈 Funil:</strong> Converte ${pct(overallCR)} de PV em Purchase. <strong>Maior gargalo:</strong> ${fLabels[worstStepIdx-1]} → ${fLabels[worstStepIdx]} (${pct1(fStepRets[worstStepIdx])}). <strong>Fortaleza:</strong> ${fLabels[bestStepIdx-1]} → ${fLabels[bestStepIdx]} (${pct1(fStepRets[bestStepIdx])}). ${fStepRets[worstStepIdx]<0.6?`Cada +1pp aqui = ~${fmtMoney(Math.round(fVals[worstStepIdx-1]*0.01*overallCR*GA4_CALIBRATION.avgTicket))} MRR.`:""}</p>`;
+  <p><strong>📈 Funil:</strong> Converte ${pct(overallCR)} de PV em Purchase. <strong>Maior gargalo:</strong> ${fLabels[worstStepIdx-1]} → ${fLabels[worstStepIdx]} (${pct1(fStepRets[worstStepIdx])}). <strong>Fortaleza:</strong> ${fLabels[bestStepIdx-1]} → ${fLabels[bestStepIdx]} (${pct1(fStepRets[bestStepIdx])}). ${fStepRets[worstStepIdx]<0.6?`Cada +1pp aqui = ~${fmtMoney(Math.round(fVals[worstStepIdx-1]*0.01*overallCR*ticket))} MRR.`:""}</p>`;
 
   document.getElementById("scorecard-insight").innerHTML=`<p><strong>💡 Ações Prioritárias:</strong></p><p>• <strong>Receita:</strong> ${revD.cls==="up"?"Crescimento validado — escalar canais top.":"Queda detectada — auditar drop por canal."}</p><p>• <strong>CPA:</strong> ${fmtMoney(cpa)}. ${cpa>300?`<em>Se</em> priorizarmos CRM (CR 3-5x), <em>então</em> reduzimos CPA em ~30%.`:""}</p><p>• <strong>Funil:</strong> Foco em ${fLabels[worstStepIdx]} — maior oportunidade de MRR incremental.</p>`;
 }
@@ -187,7 +188,7 @@ function renderScatterChart(canvasId,points){
 
 // === 3. Golden Path ===
 function renderFunnel(data){
-  const f=data.current.funnel,ticket=GA4_CALIBRATION.avgTicket;
+  const f=data.current.funnel,ticket=data.current.kpis.revenue/(data.current.kpis.purchases||1);
   const viRate=f.view_item/(f.page_view||1),atcToChk=f.begin_checkout/(f.add_to_cart||1),apiToPur=f.purchase/(f.add_payment_info||f.add_shipping_info||1);
   const actions=[
     {step:`Page View → View Item (Retenção: ${pct1(viRate)})`,omtm:"View Item / Page View",meta:`Aumentar de ${pct1(viRate)} para ${pct1(viRate+0.07)}`,se:"implementarmos carrossel de Top Sellers com preço visível acima da dobra",entao:`+7pp na discovery rate`,porque:`${pct1(1-viRate)} dos visitantes nunca veem um produto`,mrr:`~${fmtMoney(Math.round(f.page_view*0.07*atcToChk*(f.purchase/(f.add_shipping_info||1))*ticket))}/mês`},
@@ -214,7 +215,8 @@ function renderMoneyLeaks(data){
   document.getElementById("leaks-grid").innerHTML=html;
   const retRates=[];for(let i=0;i<steps.length-1;i++){retRates.push({l:`${labels[i]}→${labels[i+1]}`,v:(f[steps[i+1]]||0)/(f[steps[i]]||1)});}
   const worst=retRates.reduce((w,x)=>x.v<w.v?x:w);const best=retRates.reduce((w,x)=>x.v>w.v?x:w);
-  document.getElementById("leaks-insight").innerHTML=`<p><strong>💡 Análise:</strong> Maior fricção: <strong>${worst.l}</strong> (${pct1(worst.v)}). Maior fortaleza: <strong>${best.l}</strong> (${pct1(best.v)}). Cada +1pp no gargalo ≈ ${fmtMoney(Math.round(data.current.funnel.page_view*0.01*0.013*GA4_CALIBRATION.avgTicket))} MRR.</p>`;
+  const leakTicket=data.current.kpis.revenue/(data.current.kpis.purchases||1);
+  document.getElementById("leaks-insight").innerHTML=`<p><strong>💡 Análise:</strong> Maior fricção: <strong>${worst.l}</strong> (${pct1(worst.v)}). Maior fortaleza: <strong>${best.l}</strong> (${pct1(best.v)}). Cada +1pp no gargalo ≈ ${fmtMoney(Math.round(data.current.funnel.page_view*0.01*0.013*leakTicket))} MRR.</p>`;
 }
 
 // === 5. Devices ===

@@ -1,4 +1,4 @@
-// V6.5 — App Part 2: Sections 6-10 + Charts
+// V6.6 — App Part 2: Sections 6-10 + Charts
 
 // ---- Chart color palette (shared with app.js) ----
 const CHART_COLORS2=["#2ECB6F","#3B82F6","#A855F7","#F59E0B","#EF4444","#06B6D4","#EC4899","#10B981","#F97316","#6366F1","#14B8A6","#D946EF","#84CC16","#FB923C","#8B5CF6"];
@@ -62,26 +62,54 @@ function renderAudience(data){
 
 // === 7. Segments + Attribution ===
 function renderSegments(data){
-  const topCh=[...data.current.channels].sort((a,b)=>b.sessions-a.sessions)[0];
-  const topDev=data.current.devices.sort((a,b)=>b.sessions-a.sessions)[0];
-  const dur=fmtDur(data.current.kpis.avgDuration);
-  const cr=pct(data.current.kpis.purchases/(data.current.kpis.sessions||1));
+  const kpi=data.current.kpis;
+  const topCh=[...data.current.channels].sort((a,b)=>b.sessions-a.sessions);
+  const topDev=[...data.current.devices].sort((a,b)=>b.sessions-a.sessions)[0];
+  const dur=fmtDur(kpi.avgDuration);
+  const cr=pct(kpi.purchases/(kpi.sessions||1));
   const topCity=[...data.current.cities].sort((a,b)=>b.sessions-a.sessions)[0];
+  const topCityRev=[...data.current.cities].sort((a,b)=>b.revenue-a.revenue)[0];
   const topProd=[...data.current.products].sort((a,b)=>b.purchases-a.purchases)[0];
+  const topProdRev=[...data.current.products].sort((a,b)=>b.revenue-a.revenue)[0];
+  const topCat=[...data.current.categories].sort((a,b)=>b.revenue-a.revenue)[0];
+  const ticket=kpi.revenue/(kpi.purchases||1);
+  const mobileShare=topDev.sessions/(kpi.sessions||1);
+  const dskDev=data.current.devices.find(d=>d.name==="Desktop");
+  const mobCR=topDev.purchases/(topDev.sessions||1);
+  const dskCR=dskDev?(dskDev.purchases/(dskDev.sessions||1)):0;
+  const topPath=data.current.attributionPaths?.[0]||{label:"Social→Direct",share:0.28};
+  const paidChs=data.current.channels.filter(c=>c.group?.includes("Paid"));
+  const paidShare=paidChs.reduce((s,c)=>s+c.sessions,0)/(kpi.sessions||1);
+  const orgChs=data.current.channels.filter(c=>c.group?.includes("Organic")||c.group==='Direct'||c.group==='Email');
+  const orgConvRate=orgChs.reduce((s,c)=>s+c.purchases,0)/(orgChs.reduce((s,c)=>s+c.sessions,0)||1);
+  const topRegion=[...data.current.regions].sort((a,b)=>b.sessions-a.sessions)[0];
+  const funnel=data.current.funnel;
+  const funnelTopDrop=(funnel.page_view-funnel.view_item)/(funnel.page_view||1);
+  const checkoutDrop=(funnel.add_to_cart-funnel.purchase)/(funnel.add_to_cart||1);
+
   document.getElementById("customer-profile").innerHTML=`
-    <h3>👤 Raio-X: Perfil Médio do Assinante Allu (B2C)</h3>
-    <p>Consumidor <strong>${topDev.name}</strong> (${pct1(topDev.sessions/data.current.kpis.sessions)} sessões) de <strong>${topCity?.name||"SP"}</strong>, via <strong>${topCh?.name||"meta"}</strong>. Navega por <strong>${dur}</strong> com engajamento de ${pct1(data.current.kpis.engagementRate)}, convertendo a ${cr}.</p>
-    <p><strong>Produto top:</strong> ${topProd?.name||"iPhone"} (${fmtF(topProd?.purchases||0)} purchases). <strong>Jornada:</strong> Ad → branded search → direct → navega 2-3 SKUs → hesita na análise de crédito.</p>`;
+    <h3>👤 Raio-X: Quem é o Assinante Allu?</h3>
+    <p><strong>O consumidor allu é, acima de tudo, mobile.</strong> ${pct1(mobileShare)} de todas as ${fmt(kpi.sessions)} sessões vêm de smartphones — um público que navega no ônibus, na fila do mercado, no sofá de casa. Ele mora em <strong>${topCity?.name||"São Paulo"}</strong> (${pct1(topCity?.sessions/(kpi.sessions||1))} das sessões), mas a allu também é relevante em <strong>${topRegion?.name||"SP"}</strong> (${pct1(topRegion?.sessions/(kpi.sessions||1))} das sessões, o estado-âncora de toda a operação).</p>
+
+    <p><strong>Como ele chega?</strong> O primeiro contato é tipicamente via <strong>${topCh[0]?.canal||"Meta Ads"}</strong> (${topCh[0]?.name||"meta"} = ${pct1(topCh[0]?.sessions/(kpi.sessions||1))} das sessões). ${paidShare>0.5?`A operação é <em>paid-heavy</em> — ${pct1(paidShare)} do tráfego vem de mídia paga.`:`Mix equilibrado entre paid e orgânico.`} Mas a jornada não é linear: o caminho mais frequente de atribuição é <strong>${topPath.label}</strong> (${pct1(topPath.share)} das conversões) — ele vê um ad, pesquisa no Google, e volta via tráfego direto antes de converter. <strong>A decisão leva em média ${data.days>5?"vários dias":"+1 sessão"} e 2-3 touchpoints.</strong></p>
+
+    <p><strong>O que ele busca?</strong> Predominantemente <strong>${topCat?.name||"Smartphones"}</strong> (${fmtMoney(topCat?.revenue||0)} em receita). O produto mais comprado é <strong>${topProd?.name||"iPhone"}</strong> (${fmtF(topProd?.purchases||0)} compras) com ticket médio de <strong>${fmtMoney(Math.round(ticket))}</strong>. ${topProdRev?.name!==topProd?.name?`Porém o maior gerador de receita é <strong>${topProdRev?.name}</strong> (${fmtMoney(topProdRev?.revenue||0)}).`:""} Ele é um consumidor de tech premium que prefere <strong>assinar</strong> ao invés de comprar — o modelo de subscription é core para o B2C.</p>
+
+    <p><strong>Como ele navega?</strong> Sessão média de <strong>${dur}</strong> com engajamento de <strong>${pct1(kpi.engagementRate)}</strong> — acima da benchmark B2C. Mas a conversão geral é <strong>${cr}</strong>. ${dskCR>mobCR?`<strong>Desktop converte ${(dskCR/mobCR).toFixed(1)}x mais</strong> que mobile — a jornada desktop é de decisão, enquanto mobile é de descoberta.`:""} ${pct1(funnelTopDrop)} dos visitantes nunca veem um produto (drop Page View → View Item). E dos que chegam ao carrinho, <strong>${pct1(checkoutDrop)} falham antes de comprar</strong>.</p>
+
+    <p><strong>Persona síntese:</strong> 🎯 Homem/Mulher 22-35 anos, classe B, tech-savvy, mora em capital do Sudeste, navega por mobile via feed social, compara no Google, e volta via direct depois de pensar. Busca premium (iPhone, PS5, MacBook) por assinatura — quer o produto sem o compromisso da compra definitiva. <strong>Obstáculo #1: análise de crédito no checkout final.</strong> O que o move: preço percebido da assinatura vs compra, reviews sociais, e a conveniência de trocar de device sem dor.</p>
+
+    <p><strong>📊 Em números:</strong> ${fmtF(kpi.sessions)} sessões | ${fmtF(kpi.users)} usuários | ${fmtF(kpi.purchases)} compras | ${fmtMoney(kpi.revenue)} receita total | CR ${cr} | CPA ${fmtMoney(parseFloat(document.getElementById('input-investment')?.value||75000)/(kpi.purchases||1))}.</p>`;
+
   const paths=data.current.attributionPaths||[];
   document.getElementById("attribution-tbody").innerHTML=paths.map((p,i)=>`<tr><td>${i+1}</td><td>${p.path}</td><td>${p.label}</td><td>${pct1(p.share)}</td><td>${pct(p.conv)}</td></tr>`).join("");
-  const topPath=paths[0]||{label:"Social→Direct",share:0.28};
-  document.getElementById("attribution-insight").innerHTML=`<p><strong>💡 Atribuição:</strong> <strong>${topPath.label}</strong> = ${pct1(topPath.share)} das conversões. Jornada B2C multi-touch confirmada. <em>Se</em> otimizarmos canais de "assist", <em>então</em> +10% conversões assistidas.</p>`;
+  document.getElementById("attribution-insight").innerHTML=`<p><strong>💡 Atribuição:</strong> <strong>${topPath.label}</strong> = ${pct1(topPath.share)} das conversões. Jornada B2C multi-touch confirmada. <em>Se</em> otimizarmos canais de "assist" (${topCh[1]?.name||"google/organic"}, ${topCh[2]?.name||"direct"}), <em>então</em> +10% conversões assistidas. Canais orgânicos convertem a ${pct(orgConvRate)} — ${(orgConvRate/mobCR).toFixed(1)}x mais que paid social.</p>`;
   const segs=[
-    {icon:"💳",title:"Abandonadores de Checkout Quente",def:"Preencheram até crédito e recuaram.",m:"Drop Shipping→Purchase",a:`<em>Se</em> WhatsApp em 1h com "Aprovação garantida", <em>então</em> ~12% recuperação.`},
+    {icon:"💳",title:"Abandonadores de Checkout Quente",def:"Preencheram até crédito e recuaram.",m:"Drop Shipping→Purchase",a:`<em>Se</em> WhatsApp em 1h com \"Aprovação garantida\", <em>então</em> ~12% recuperação.`},
     {icon:"🛒",title:"Multi-Cart Sem Decisão",def:"2+ SKUs no carrinho, sem checkout.",m:"Cart→Checkout",a:`<em>Se</em> bundle discount, <em>então</em> +20% checkout.`},
     {icon:"📱",title:"Mobile High-Intent (iOS)",def:`Navegaram ${topProd?.name||"iPhone"} 2x+ em 7d.`,m:"Recompra high-intent",a:`<em>Se</em> retargeting Meta 7d, <em>então</em> +25% conversão.`},
     {icon:"♻️",title:"Retornantes de Consideração",def:"3+ sessões em 14d sem compra.",m:"Lead Morno→Purchase",a:`<em>Se</em> email authority, <em>então</em> 5% conversão em 30d.`},
-    {icon:"🎮",title:"Gamers Night (Impulso)",def:"Busca console sexta 20h-23h via mobile.",m:"CR impulso noturno",a:`<em>Se</em> ads "Jogue neste FDS", <em>então</em> +30% CR nesse horário.`},
+    {icon:"🎮",title:"Gamers Night (Impulso)",def:"Busca console sexta 20h-23h via mobile.",m:"CR impulso noturno",a:`<em>Se</em> ads \"Jogue neste FDS\", <em>então</em> +30% CR nesse horário.`},
     {icon:"🔄",title:"Comparadores Seriais",def:"5+ SKUs mesma categoria sem cart.",m:"View→Cart",a:`<em>Se</em> tabela comparativa automática, <em>então</em> +18% add-to-cart.`},
     {icon:"📩",title:"Leads Email Alta Abertura",def:"3+ emails abertos em 30d, sem site.",m:"Email→Session",a:`<em>Se</em> CTA exclusivo newsletter, <em>então</em> +35% CTR.`},
     {icon:"🏙️",title:`Heavy Users de ${topCity?.name||"SP"}`,def:`Top 10% tempo sessão em ${topCity?.name||"SP"}.`,m:"Session→Purchase",a:`<em>Se</em> popup atendimento após 4min, <em>então</em> +8% conversão.`},
@@ -145,7 +173,7 @@ function renderProducts(data){
 
 // === 9. ICE Matrix ===
 function renderICE(data){
-  const f=data.current.funnel,ticket=GA4_CALIBRATION.avgTicket;
+  const f=data.current.funnel,ticket=data.current.kpis.revenue/(data.current.kpis.purchases||1);
   const actions=[
     {a:"Carrossel Top Sellers above-the-fold",omtm:"View Item Rate",i:8,c:7,e:9,mrr:Math.round(f.page_view*0.07*0.03*ticket)},
     {a:"Widget Simulação de Parcela no Cart",omtm:"Cart→Checkout Rate",i:9,c:8,e:7,mrr:Math.round(f.add_to_cart*0.15*0.5*ticket)},
@@ -166,7 +194,7 @@ function renderICE(data){
 function renderGrowth(data){
   const cr=data.current.kpis.purchases/(data.current.kpis.sessions||1);
   const rev=data.current.kpis.revenue,sess=data.current.kpis.sessions,purch=data.current.kpis.purchases;
-  const ticket=GA4_CALIBRATION.avgTicket,days=data.days||30,monthlyMul=30/days;
+  const ticket=data.current.kpis.revenue/(data.current.kpis.purchases||1),days=data.days||30,monthlyMul=30/days;
   const scenarios=[
     {name:"🔴 Cenário Conservador (+5% CR)",crMod:1.05,sessMod:1.0,desc:"Mantemos tráfego atual + 5% CR via UX."},
     {name:"🟡 Cenário Moderado (+10% CR, +10% Sessões)",crMod:1.10,sessMod:1.10,desc:"CRO + aumento moderado de budget."},

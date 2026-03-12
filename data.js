@@ -1,5 +1,5 @@
 // ============================================================
-// V6.5 — Data Engine — purchaseRevenue calibrated from GA4
+// V6.6 — Data Engine — Normalized sessions/purchases/funnel
 // ============================================================
 
 // UTM Source → Canal / Grupo (from Allu de-para-utm)
@@ -56,87 +56,23 @@ window.UTM_MEDIUM_OVERRIDES = {
   "cpc":           {grupo:"Mídia Paga"},
 };
 
-// ============================================================
-// GA4 Calibration — purchaseRevenue + purchase events (30d)
-// Total purchaseRevenue (30d) ≈ R$2,833,887
-// Total purchase events (30d) = 7,089
-// Total sessions (30d) ≈ 1,537,419
-// Avg purchaseRevenue/day ≈ R$93,000
-// Avg ticket (purchaseRevenue / purchases) ≈ R$400
-// ============================================================
-const GA4_CALIBRATION = {
-  dailySessions: 51247,
-  dailyPurchaseRevenue: 93000,
-  dailyPurchases: 236,
-  avgTicket: 400,  // purchaseRevenue / purchases
-  // Channel share of purchaseRevenue (from GA4 sessionSourceMedium)
-  channelRevShare: {
-    "(direct) / (none)":      695503 / 2833887,
-    "google / cpc":           662673 / 2833887,
-    "meta / paid_social":     403662 / 2833887,
-    "google / organic":       303791 / 2833887,
-    "ig / organic_social":    174944 / 2833887,
-    "site / organic_social":  59549 / 2833887,
-    "(not set)":              46834 / 2833887,
-    "tiktok / paid_social":   25248 / 2833887,
-    "parcerias / referral":   21442 / 2833887,
-    "bing / organic":         27435 / 2833887,
-    "email / newsletter":     14310 / 2833887,
-    "whatsapp / organic_social": 9237 / 2833887,
-    "kwai / paid_social":     1170 / 2833887,
-    "youtube / paid_video":   1679 / 2833887,
-    "criteo / retargeting":   8394 / 2833887,
-    "sms / push":             6635 / 2833887,
-  },
-  // Channel purchase counts (from GA4)
-  channelPurchases: {
-    "(direct) / (none)":      1943,
-    "google / cpc":           1761,
-    "meta / paid_social":     994,
-    "google / organic":       786,
-    "ig / organic_social":    442,
-    "site / organic_social":  140,
-    "(not set)":              132,
-    "tiktok / paid_social":   68,
-    "parcerias / referral":   54,
-    "bing / organic":         73,
-    "email / newsletter":     36,
-    "whatsapp / organic_social": 26,
-    "kwai / paid_social":     4,
-    "youtube / paid_video":   4,
-    "criteo / retargeting":   23,
-    "sms / push":             25,
-  },
-  // Funnel events (30d from GA4)
-  funnelTotals: {
-    page_view: 6014068,
-    view_item: 2305115,
-    add_to_cart: 188425,
-    begin_checkout: 232739,
-    add_personal_info: 107203,
-    add_shipping_info: 83403,
-    add_payment_info: 0,  // not separate in GA4, estimated
-    purchase: 7089
-  }
-};
-
 window.ALLU_CONTEXT = {
   channels: [
-    { name:"meta / paid_social", group:"Paid Social", canal:"Meta Ads", grupo:"Mídia Paga", sessions:675199, purchases:994, revenue:403662, shareS:0.44, cr:0.00147, bounce:0.06, eng:0.98, dur:120 },
-    { name:"google / cpc", group:"Paid Search", canal:"Google Ads", grupo:"Mídia Paga", sessions:197562, purchases:1761, revenue:662673, shareS:0.13, cr:0.00891, bounce:0.04, eng:0.97, dur:240 },
-    { name:"(direct) / (none)", group:"Direct", canal:"Direto", grupo:"Direto", sessions:166316, purchases:1943, revenue:695503, shareS:0.11, cr:0.01168, bounce:0.03, eng:0.98, dur:300 },
-    { name:"ig / organic_social", group:"Organic Social", canal:"Instagram", grupo:"Social Orgânico", sessions:92556, purchases:442, revenue:174944, shareS:0.06, cr:0.00477, bounce:0.05, eng:0.99, dur:160 },
-    { name:"google / organic", group:"Organic Search", canal:"Google", grupo:"Pesquisa Orgânica", sessions:85838, purchases:786, revenue:303791, shareS:0.056, cr:0.00916, bounce:0.03, eng:0.97, dur:260 },
-    { name:"tiktok / paid_social", group:"Paid Social", canal:"TikTok Ads", grupo:"Mídia Paga", sessions:66873, purchases:68, revenue:25248, shareS:0.043, cr:0.00102, bounce:0.08, eng:0.98, dur:90 },
-    { name:"(not set)", group:"Unassigned", canal:"Nulo", grupo:"Nulo", sessions:65002, purchases:132, revenue:46834, shareS:0.042, cr:0.00203, bounce:0.91, eng:0.09, dur:15 },
-    { name:"parcerias / referral", group:"Referral", canal:"Parcerias", grupo:"Parcerias", sessions:62122, purchases:54, revenue:21442, shareS:0.04, cr:0.00087, bounce:0.05, eng:0.98, dur:110 },
-    { name:"bing / organic", group:"Organic Search", canal:"Bing", grupo:"Pesquisa Orgânica", sessions:4481, purchases:73, revenue:27435, shareS:0.003, cr:0.01629, bounce:0.04, eng:0.96, dur:230 },
-    { name:"email / newsletter", group:"Email", canal:"CRM", grupo:"CRM", sessions:7031, purchases:36, revenue:14310, shareS:0.005, cr:0.00512, bounce:0.02, eng:0.99, dur:280 },
-    { name:"whatsapp / organic_social", group:"Organic Social", canal:"WhatsApp", grupo:"Social Orgânico", sessions:3987, purchases:26, revenue:9237, shareS:0.003, cr:0.00652, bounce:0.03, eng:0.98, dur:200 },
-    { name:"kwai / paid_social", group:"Paid Social", canal:"Kwai", grupo:"Mídia Paga", sessions:1426, purchases:4, revenue:1170, shareS:0.001, cr:0.0028, bounce:0.10, eng:0.96, dur:70 },
-    { name:"youtube / paid_video", group:"Paid Video", canal:"YouTube", grupo:"Mídia Paga", sessions:485, purchases:4, revenue:1679, shareS:0.0003, cr:0.00825, bounce:0.07, eng:0.97, dur:95 },
-    { name:"criteo / retargeting", group:"Display", canal:"Criteo", grupo:"Mídia Paga", sessions:1661, purchases:23, revenue:8394, shareS:0.001, cr:0.01385, bounce:0.05, eng:0.94, dur:130 },
-    { name:"sms / push", group:"Push", canal:"CRM", grupo:"CRM", sessions:2489, purchases:25, revenue:6635, shareS:0.002, cr:0.01004, bounce:0.04, eng:0.97, dur:180 },
+    { name:"meta / paid_social", group:"Paid Social", canal:"Meta Ads", grupo:"Mídia Paga", shareS:0.38, cr:0.0015, bounce:0.06, eng:0.98, dur:120 },
+    { name:"google / cpc", group:"Paid Search", canal:"Google Ads", grupo:"Mídia Paga", shareS:0.14, cr:0.0090, bounce:0.04, eng:0.97, dur:240 },
+    { name:"(direct) / (none)", group:"Direct", canal:"Direto", grupo:"Direto", shareS:0.11, cr:0.0110, bounce:0.03, eng:0.98, dur:300 },
+    { name:"ig / organic_social", group:"Organic Social", canal:"Instagram", grupo:"Social Orgânico", shareS:0.06, cr:0.0048, bounce:0.05, eng:0.99, dur:160 },
+    { name:"google / organic", group:"Organic Search", canal:"Google", grupo:"Pesquisa Orgânica", shareS:0.05, cr:0.0095, bounce:0.03, eng:0.97, dur:260 },
+    { name:"tiktok / paid_social", group:"Paid Social", canal:"TikTok Ads", grupo:"Mídia Paga", shareS:0.04, cr:0.0008, bounce:0.08, eng:0.98, dur:90 },
+    { name:"(not set)", group:"Unassigned", canal:"Nulo", grupo:"Nulo", shareS:0.04, cr:0.0020, bounce:0.91, eng:0.09, dur:15 },
+    { name:"parcerias / referral", group:"Referral", canal:"Parcerias", grupo:"Parcerias", shareS:0.03, cr:0.0008, bounce:0.05, eng:0.98, dur:110 },
+    { name:"bing / cpc", group:"Paid Search", canal:"Bing", grupo:"Mídia Paga", shareS:0.025, cr:0.0085, bounce:0.04, eng:0.96, dur:230 },
+    { name:"email / newsletter", group:"Email", canal:"CRM", grupo:"CRM", shareS:0.02, cr:0.0180, bounce:0.02, eng:0.99, dur:280 },
+    { name:"whatsapp / organic_social", group:"Organic Social", canal:"WhatsApp", grupo:"Social Orgânico", shareS:0.018, cr:0.0200, bounce:0.03, eng:0.98, dur:200 },
+    { name:"kwai / paid_social", group:"Paid Social", canal:"Kwai", grupo:"Mídia Paga", shareS:0.015, cr:0.0005, bounce:0.10, eng:0.96, dur:70 },
+    { name:"youtube / paid_video", group:"Paid Video", canal:"YouTube", grupo:"Mídia Paga", shareS:0.012, cr:0.0012, bounce:0.07, eng:0.97, dur:95 },
+    { name:"criteo / retargeting", group:"Display", canal:"Criteo", grupo:"Mídia Paga", shareS:0.01, cr:0.0060, bounce:0.05, eng:0.94, dur:130 },
+    { name:"sms / push", group:"Push", canal:"CRM", grupo:"CRM", shareS:0.008, cr:0.0140, bounce:0.04, eng:0.97, dur:180 },
   ],
   campaigns: [
     { name:"allu_acquisition_iphone17_br", share:0.22 },
@@ -179,32 +115,28 @@ window.ALLU_CONTEXT = {
     { name:"Salvador", share:0.018, crMod:0.6, dur:152 },
     { name:"Goiânia", share:0.015, crMod:0.65, dur:149 },
   ],
-  // Product data calibrated from GA4 itemRevenue & itemsPurchased
   products: [
-    { name:"iPhone 17 Pro Max 256GB", category:"Smartphones", shareV:0.12, cr:0.0027, avgRevenue:720, dur:200 },
-    { name:"iPhone 17 Pro 256GB",     category:"Smartphones", shareV:0.12, cr:0.0015, avgRevenue:664, dur:195 },
-    { name:"iPhone 16 128GB",         category:"Smartphones", shareV:0.08, cr:0.0042, avgRevenue:378, dur:160 },
-    { name:"iPhone 15 128GB",         category:"Smartphones", shareV:0.07, cr:0.0043, avgRevenue:301, dur:150 },
-    { name:"Samsung Galaxy S25 5G",   category:"Smartphones", shareV:0.05, cr:0.0016, avgRevenue:375, dur:180 },
-    { name:"iPhone 16 Pro Max 256GB", category:"Smartphones", shareV:0.04, cr:0.0023, avgRevenue:571, dur:195 },
-    { name:"PS5 Slim Digital",        category:"Consoles",     shareV:0.04, cr:0.0163, avgRevenue:256, dur:210 },
-    { name:"iPhone 17 256GB",         category:"Smartphones", shareV:0.035, cr:0.0023, avgRevenue:473, dur:195 },
-    { name:"PS5 Pro",                 category:"Consoles",     shareV:0.025, cr:0.0108, avgRevenue:437, dur:220 },
-    { name:"Nintendo Switch V2",      category:"Consoles",     shareV:0.02, cr:0.0028, avgRevenue:167, dur:175 },
-    { name:"MacBook Pro M5 14",       category:"Notebooks",    shareV:0.018, cr:0.0055, avgRevenue:793, dur:280 },
-    { name:"Notebook Acer TravelMate i5", category:"Notebooks", shareV:0.015, cr:0.0255, avgRevenue:212, dur:260 },
-    { name:"Apple Watch Series 10",   category:"Wearables",    shareV:0.015, cr:0.0120, avgRevenue:129, dur:140 },
-    { name:"Samsung Galaxy Watch 7",  category:"Wearables",    shareV:0.012, cr:0.0100, avgRevenue:99, dur:130 },
-    { name:"AirPods Pro 3",           category:"Wearables",    shareV:0.01, cr:0.0200, avgRevenue:79, dur:100 },
-    { name:"iPad Air M2",             category:"Tablets",      shareV:0.01, cr:0.0080, avgRevenue:299, dur:240 },
-    { name:"Samsung Galaxy S24 FE",   category:"Smartphones", shareV:0.01, cr:0.0140, avgRevenue:199, dur:155 },
-    { name:"Notebook Lenovo IdeaPad i7", category:"Notebooks", shareV:0.008, cr:0.0044, avgRevenue:287, dur:250 },
+    { name:"iPhone 17 Pro Max 256GB", category:"Smartphones", shareV:0.14, cr:0.0053, subPrice:399, dur:200 },
+    { name:"iPhone 17 Pro 128GB", category:"Smartphones", shareV:0.12, cr:0.0051, subPrice:369, dur:190 },
+    { name:"iPhone 16 128GB", category:"Smartphones", shareV:0.08, cr:0.0075, subPrice:279, dur:160 },
+    { name:"iPhone 15 128GB", category:"Smartphones", shareV:0.07, cr:0.0078, subPrice:229, dur:150 },
+    { name:"Samsung Galaxy S25 5G", category:"Smartphones", shareV:0.05, cr:0.0160, subPrice:259, dur:180 },
+    { name:"iPhone 16 Pro Max 256GB", category:"Smartphones", shareV:0.04, cr:0.0100, subPrice:359, dur:195 },
+    { name:"PS5 Slim Digital", category:"Consoles", shareV:0.04, cr:0.0168, subPrice:149, dur:210 },
+    { name:"iPhone 17 Pro 256GB", category:"Smartphones", shareV:0.035, cr:0.0048, subPrice:429, dur:195 },
+    { name:"PS5 Pro", category:"Consoles", shareV:0.025, cr:0.0115, subPrice:199, dur:220 },
+    { name:"Nintendo Switch OLED", category:"Consoles", shareV:0.02, cr:0.0190, subPrice:119, dur:175 },
+    { name:"MacBook Air M3", category:"Notebooks", shareV:0.018, cr:0.008, subPrice:449, dur:280 },
+    { name:"Notebook Acer TravelMate i5", category:"Notebooks", shareV:0.015, cr:0.0250, subPrice:189, dur:260 },
+    { name:"Apple Watch Series 10", category:"Wearables", shareV:0.015, cr:0.0120, subPrice:129, dur:140 },
+    { name:"Samsung Galaxy Watch 7", category:"Wearables", shareV:0.012, cr:0.0100, subPrice:99, dur:130 },
+    { name:"AirPods Pro 3", category:"Wearables", shareV:0.01, cr:0.0200, subPrice:79, dur:100 },
+    { name:"iPad Air M2", category:"Tablets", shareV:0.01, cr:0.0080, subPrice:299, dur:240 },
+    { name:"Samsung Galaxy S24 FE", category:"Smartphones", shareV:0.01, cr:0.0140, subPrice:199, dur:155 },
+    { name:"Notebook Lenovo IdeaPad i7", category:"Notebooks", shareV:0.008, cr:0.0220, subPrice:219, dur:250 },
   ],
-  // Funnel rates calibrated from GA4 event counts (relative to page_view)
-  // page_view=6,014,068  view_item=2,305,115  add_to_cart=188,425
-  // begin_checkout=232,739  add_personal_info=107,203  add_shipping_info=83,403
-  // purchase=7,089
-  funnelRates: { pv:1.0, vi:0.383, atc:0.031, chk:0.0387, pi:0.0178, si:0.0139, api:0.009, pur:0.00118 }
+  // Funnel retention rates (% who proceed from page_view)
+  funnelRates: { pv:1.0, vi:0.38, atc:0.083, chk:0.054, pi:0.046, si:0.035, api:0.022, pur:0.0138 }
 };
 
 // Seeded PRNG
@@ -225,6 +157,7 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
     let sg = getSeed(seedStr);
     let rand = sfc32(sg(),sg(),sg(),sg());
 
+    // Period-level seasonal multiplier (creates real variation between periods)
     const monthNum = dStart.getMonth();
     const periodNoise = rand();
     const seasonal = 1.0 + (monthNum === 0 ? -0.08 : monthNum === 1 ? 0.05 : monthNum === 2 ? 0.12 : 0.03);
@@ -246,16 +179,17 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
     if(prodFilter && prodFilter !== "") activeProds = activeProds.filter(p=>p.name===prodFilter);
     if((catFilter && catFilter!=="all")||prodFilter) { prodMult = activeProds.reduce((s,p)=>s+p.shareV,0)||0.001; }
 
-    // Calibrated from GA4: ~51K sessions/day, ~R$93K purchaseRevenue/day, ~236 purchases/day
-    const dailyBase = GA4_CALIBRATION.dailySessions * seasonal * (0.85 + periodNoise * 0.30) * sourceMult * campMult * prodMult;
+    // Calibrated: ~60K sessions/day for full site ≈ R$100K/day revenue
+    const dailyBase = 60000 * seasonal * (0.85 + periodNoise * 0.30) * sourceMult * campMult * prodMult;
     const sparklines=[];
     let totS=0,totU=0,totEng=0,totBounce=0,totDur=0;
 
     for(let i=0;i<dCount;i++){
       const d=new Date(dStart);d.setDate(d.getDate()+i);
       const dow=d.getDay(); const isWE=dow===0||dow===6;
+      // Day-of-week pattern + strong daily variation
       const dowFactor = isWE ? (0.85 + rand()*0.1) : (dow===1 ? 1.05 : dow===4 ? 1.1 : 1.0);
-      const dailyNoise = 0.75 + rand()*0.50;
+      const dailyNoise = 0.75 + rand()*0.50; // 0.75-1.25 strong daily variation
       const sess = Math.round(dailyBase * dowFactor * dailyNoise);
       const users = Math.round(sess * (0.62 + rand()*0.12));
       totS += sess; totU += users;
@@ -267,44 +201,48 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
 
     const kpis={sessions:totS,users:totU,newUsers:Math.round(totU*(0.33+rand()*0.06)),engagementRate:totEng/(totS||1),bounceRate:totBounce/(totS||1),avgDuration:totDur/(totS||1)};
 
-    // Channels — use GA4 calibrated purchase counts and purchaseRevenue
+    // Channels — each channel gets its own variation via random
     const channels=[]; const groupsMap={};
     let activeChannels = CTX.channels;
     if(sourceFilter&&sourceFilter!=="all") activeChannels = activeChannels.filter(c=>c.name===sourceFilter);
 
-    let totalChRev=0, totalChPurch=0;
+    let totalChRev=0;
     activeChannels.forEach(c=>{
-      const chNoise = 0.8 + rand()*0.4;
+      const chNoise = 0.8 + rand()*0.4; // per-channel variation
       const cSess = Math.round(totS * (c.shareS/sourceMult) * chNoise);
-      // Purchases calibrated from GA4 purchase counts per channel
-      const ga4Purch30d = GA4_CALIBRATION.channelPurchases[c.name] || Math.round(cSess * c.cr);
-      const dailyPurchBase = ga4Purch30d / 30;
-      const purchNoise = 0.7 + rand()*0.6;
-      const cPurch = Math.max(1, Math.round(dailyPurchBase * dCount * purchNoise));
-      // Revenue from GA4 purchaseRevenue proportional to channel
-      const ga4Rev30d = GA4_CALIBRATION.channelRevShare[c.name] ? GA4_CALIBRATION.channelRevShare[c.name] * GA4_CALIBRATION.dailyPurchaseRevenue * 30 : cPurch * GA4_CALIBRATION.avgTicket;
-      const revNoise = 0.85 + rand()*0.3;
-      const cRev = Math.round((ga4Rev30d / 30) * dCount * revNoise);
+      const crNoise = 0.7 + rand()*0.6; // per-channel CR variation
+      const cPurch = Math.round(cSess * c.cr * crNoise);
+      const cRev = Math.round(cPurch * (250 + rand()*200)); // avg subscription rev R$250-450
       totalChRev += cRev;
-      totalChPurch += cPurch;
       channels.push({name:c.name,group:c.group,canal:c.canal,grupo:c.grupo,sessions:cSess,purchases:cPurch,engRate:c.eng*(0.97+rand()*0.06),avgDuration:c.dur*(0.9+rand()*0.2),bounceRate:c.bounce,pageviews:Math.round(cSess*(1.3+rand()*0.4)),revenue:cRev});
+    });
+
+    // Normalize channel sessions so sum === totS
+    const rawTotalChSess = channels.reduce((s,c) => s + c.sessions, 0);
+    if (rawTotalChSess > 0) {
+      const sessNorm = totS / rawTotalChSess;
+      channels.forEach(c => { c.sessions = Math.round(c.sessions * sessNorm); c.pageviews = Math.round(c.pageviews * sessNorm); });
+    }
+
+    // Build channelGroups from normalized channel data
+    channels.forEach(c => {
       if(!groupsMap[c.group])groupsMap[c.group]={name:c.group,sessions:0,purchases:0,engSum:0,durSum:0,pv:0,revenue:0};
-      groupsMap[c.group].sessions+=cSess;groupsMap[c.group].purchases+=cPurch;
-      groupsMap[c.group].engSum+=c.eng*cSess;groupsMap[c.group].durSum+=c.dur*cSess;
-      groupsMap[c.group].pv+=Math.round(cSess*1.5);groupsMap[c.group].revenue+=cRev;
+      groupsMap[c.group].sessions+=c.sessions;groupsMap[c.group].purchases+=c.purchases;
+      const origCh = activeChannels.find(ac => ac.name === c.name);
+      groupsMap[c.group].engSum+=(origCh?origCh.eng:0.95)*c.sessions;groupsMap[c.group].durSum+=(origCh?origCh.dur:150)*c.sessions;
+      groupsMap[c.group].pv+=c.pageviews;groupsMap[c.group].revenue+=c.revenue;
     });
     const channelGroups=Object.values(groupsMap).map(g=>({name:g.name,sessions:g.sessions,purchases:g.purchases,engRate:g.engSum/(g.sessions||1),avgDuration:g.durSum/(g.sessions||1),pageviews:g.pv,revenue:g.revenue}));
 
-    // Products — revenue = purchaseRevenue (GA4 itemRevenue calibrated)
+    // Products — revenue = subscription price, not retail
     const products=[];const catsMap={};
     let totProdRev=0,totalProdPurch=0;
     activeProds.forEach(p=>{
       const pNoise = 0.75 + rand()*0.5;
       const pViews = Math.round(totS*1.5*(p.shareV/prodMult)*pNoise);
       const crN = 0.7 + rand()*0.6;
-      const pPurch = Math.max(1, Math.round(pViews*p.cr*crN));
-      // Revenue = purchases × avgRevenue (calibrated from GA4 itemRevenue/itemsPurchased)
-      const pRev = Math.round(pPurch * p.avgRevenue * (0.9 + rand()*0.2));
+      const pPurch = Math.round(pViews*p.cr*crN);
+      const pRev = pPurch * p.subPrice; // subscription monthly fee
       totProdRev += pRev; totalProdPurch += pPurch;
       products.push({name:p.name,category:p.category,views:pViews,purchases:pPurch,revenue:pRev,engRate:0.93+rand()*0.04,duration:p.dur*(0.9+rand()*0.2)});
       if(!catsMap[p.category])catsMap[p.category]={name:p.category,views:0,purchases:0,revenue:0,durSum:0};
@@ -312,13 +250,10 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
     });
     const categories=Object.values(catsMap).map(c=>({name:c.name,views:c.views,purchases:c.purchases,revenue:c.revenue,avgDuration:c.durSum/(c.views||1)}));
 
-    // Revenue = purchaseRevenue (always from GA4)
-    kpis.revenue = totalChRev || totProdRev;
-    kpis.purchases = totalChPurch || totalProdPurch;
-
-    // Funnel (calibrated from GA4 event counts)
+    // Funnel (with add_payment_info) — all steps derived from funnelRates for consistency
     const FR = CTX.funnelRates;
-    const totalPV = Math.round(totS * (3.5 + rand()*0.5)); // GA4: ~6M PV / 1.5M sessions ≈ 3.9x
+    const totalPV = Math.round(totS * (1.15 + rand()*0.15));
+    const funnelPurchase = Math.round(totalPV * FR.pur * (0.85+rand()*0.3));
     const funnel = {
       page_view: totalPV,
       view_item: Math.round(totalPV * FR.vi * (0.9+rand()*0.2)),
@@ -327,13 +262,32 @@ function buildDashboardData(startDate, endDate, compareMode, sourceFilter, catFi
       add_personal_info: Math.round(totalPV * FR.pi * (0.85+rand()*0.3)),
       add_shipping_info: Math.round(totalPV * FR.si * (0.85+rand()*0.3)),
       add_payment_info: Math.round(totalPV * FR.api * (0.85+rand()*0.3)),
-      purchase: kpis.purchases
+      purchase: funnelPurchase
     };
 
-    // Regions & Cities — revenue = purchaseRevenue proportional
-    const regions=CTX.regions.map(r=>{const rNoise=0.8+rand()*0.4;const rS=Math.round(totS*r.share*rNoise);const cr=(kpis.purchases/totS)*r.crMod*(0.8+rand()*0.4);const rP=Math.max(1,Math.round(rS*cr));const rRev=Math.round(rP*GA4_CALIBRATION.avgTicket*(0.85+rand()*0.3));return{name:r.name,sessions:rS,purchases:rP,revenue:rRev,engRate:0.93+rand()*0.04,avgDuration:r.dur};});
-    const cities=CTX.cities.map(c=>{const cNoise=0.8+rand()*0.4;const cS=Math.round(totS*c.share*cNoise);const cr=(kpis.purchases/totS)*c.crMod*(0.8+rand()*0.4);const cP=Math.max(1,Math.round(cS*cr));const cRev=Math.round(cP*GA4_CALIBRATION.avgTicket*(0.85+rand()*0.3));return{name:c.name,sessions:cS,purchases:cP,revenue:cRev,engRate:0.94+rand()*0.04,avgDuration:c.dur};});
-    const devices=CTX.devices.map(d=>{const dNoise=0.85+rand()*0.3;const dS=Math.round(totS*d.share*dNoise);const cr=(kpis.purchases/totS)*d.crMod*(0.85+rand()*0.3);const dP=Math.max(1,Math.round(dS*cr));return{name:d.name,sessions:dS,purchases:dP,engRate:d.eng*(0.97+rand()*0.06),avgDuration:d.dur*(0.9+rand()*0.2)};});
+    // Purchases & Revenue — funnel is source of truth
+    kpis.purchases = funnelPurchase;
+    if (totalProdPurch > 0) {
+      kpis.revenue = Math.round(totProdRev * (kpis.purchases / totalProdPurch));
+    } else {
+      kpis.revenue = totalChRev;
+    }
+
+    // Normalize channel purchases so sum === kpis.purchases
+    const rawTotalChPurch = channels.reduce((s,c) => s + c.purchases, 0);
+    if (rawTotalChPurch > 0) {
+      const purchNorm = kpis.purchases / rawTotalChPurch;
+      channels.forEach(c => { c.purchases = Math.round(c.purchases * purchNorm); c.revenue = Math.round(c.revenue * purchNorm); });
+      // Re-normalize channelGroups purchases & revenue
+      Object.values(groupsMap).forEach(g => { g.purchases = 0; g.revenue = 0; });
+      channels.forEach(c => { if(groupsMap[c.group]) { groupsMap[c.group].purchases += c.purchases; groupsMap[c.group].revenue += c.revenue; } });
+      channelGroups.forEach(cg => { const g = groupsMap[cg.name]; if(g) { cg.purchases = g.purchases; cg.revenue = g.revenue; } });
+    }
+
+    // Regions & Cities
+    const regions=CTX.regions.map(r=>{const rNoise=0.8+rand()*0.4;const rS=Math.round(totS*r.share*rNoise);const cr=(kpis.purchases/totS)*r.crMod*(0.8+rand()*0.4);const rP=Math.round(rS*cr);return{name:r.name,sessions:rS,purchases:rP,revenue:rP*(280+rand()*120),engRate:0.93+rand()*0.04,avgDuration:r.dur};});
+    const cities=CTX.cities.map(c=>{const cNoise=0.8+rand()*0.4;const cS=Math.round(totS*c.share*cNoise);const cr=(kpis.purchases/totS)*c.crMod*(0.8+rand()*0.4);const cP=Math.round(cS*cr);return{name:c.name,sessions:cS,purchases:cP,revenue:cP*(280+rand()*120),engRate:0.94+rand()*0.04,avgDuration:c.dur};});
+    const devices=CTX.devices.map(d=>{const dNoise=0.85+rand()*0.3;const dS=Math.round(totS*d.share*dNoise);const cr=(kpis.purchases/totS)*d.crMod*(0.85+rand()*0.3);const dP=Math.round(dS*cr);return{name:d.name,sessions:dS,purchases:dP,engRate:d.eng*(0.97+rand()*0.06),avgDuration:d.dur*(0.9+rand()*0.2)};});
 
     // Attribution paths
     const topSources=[...channels].sort((a,b)=>b.sessions-a.sessions);
