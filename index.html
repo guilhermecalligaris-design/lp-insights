@@ -15,7 +15,7 @@
       <div class="header-top-row">
         <div class="brand">
           <img src="assets/logo.png" alt="allu" class="brand-logo">
-          <div class="brand-text"><h1>Inteligência Operacional</h1><p class="subtitle">Growth Intelligence Dashboard</p></div>
+          <div class="brand-text"><h1>Inteligência Operacional</h1><p class="subtitle">Growth Intelligence Dashboard — V6.5</p></div>
         </div>
         <div class="header-controls">
           <div class="theme-toggle">
@@ -45,8 +45,13 @@
   <main class="main">
     <!-- 01 — Executive Scorecard -->
     <section class="section" id="sec-scorecard">
-      <div class="section-header"><span class="section-number">01</span><h2>Executive Scorecard</h2><span class="section-subtitle">Saúde de Tráfego, Receita, Investimento e Funil</span></div>
-      <div class="invest-bar">🔥 Investimento Total (Google + Meta): R$ <input type="number" id="input-investment" value="75000" style="width:90px"> <button id="btn-update-invest">Atualizar</button></div>
+      <div class="section-header"><span class="section-number">01</span><h2>Executive Scorecard</h2><span class="section-subtitle">Saúde de Tráfego, Receita (purchaseRevenue), Investimento e Funil</span></div>
+      <div class="invest-bar">
+        <span class="invest-label">🔥 Investimento Total (Google + Meta):</span>
+        <span>R$</span>
+        <input type="number" id="input-investment" value="75000">
+        <button class="update-btn" id="btn-update-invest">Atualizar</button>
+      </div>
       <div id="scorecard-layout" class="scorecard-layout"></div>
       <div class="insight-blocks" id="scorecard-blocks">
         <div class="insight-block insight-summary" id="scorecard-summary"></div>
@@ -67,6 +72,9 @@
         <div class="chart-card"><h4>📊 Share de Receita por Grupo</h4><canvas id="chart-pie-grupo" height="280"></canvas></div>
         <div class="chart-card"><h4>📊 Compras × Conv Rate por Grupo</h4><canvas id="chart-scatter-grupo" height="280"></canvas></div>
       </div>
+      <div class="insight-blocks">
+        <div class="insight-block insight-summary" id="charts-grupo-insight"></div>
+      </div>
       <h3 class="subsection-title">Source / Medium (Top 15)</h3>
       <div class="table-responsive"><table class="data-table"><thead><tr><th>#</th><th>Source / Medium</th><th>Canal</th><th>Sessões</th><th>Compras</th><th>Conv Rate</th><th>Share Sessões</th><th>Share Compras</th><th>Receita</th><th>Share Receita</th><th>Engaj Rate</th><th>Duração</th></tr></thead><tbody id="channels-tbody"></tbody><tfoot id="channels-tfoot"></tfoot></table></div>
       <div class="insight-blocks">
@@ -76,6 +84,9 @@
       <div class="charts-row">
         <div class="chart-card"><h4>📊 Share de Receita por Source/Medium</h4><canvas id="chart-pie-source" height="280"></canvas></div>
         <div class="chart-card"><h4>📊 Compras × Conv Rate por Source</h4><canvas id="chart-scatter-source" height="280"></canvas></div>
+      </div>
+      <div class="insight-blocks">
+        <div class="insight-block insight-summary" id="charts-source-insight"></div>
       </div>
     </section>
 
@@ -110,6 +121,9 @@
         <div class="chart-card"><h4>📊 Receita × Conv Rate por Cidade</h4><canvas id="chart-scatter-geo" height="280"></canvas></div>
         <div class="chart-card"><h4>📊 Sessões, Compras e Conv Rate por Cidade</h4><canvas id="chart-combo-geo" height="280"></canvas></div>
       </div>
+      <div class="insight-blocks">
+        <div class="insight-block insight-summary" id="charts-geo-insight"></div>
+      </div>
       <div id="audience-topflop"></div>
     </section>
 
@@ -132,6 +146,9 @@
         <div class="chart-card"><h4>📊 Receita × Conv Rate por Produto</h4><canvas id="chart-scatter-products" height="280"></canvas></div>
         <div class="chart-card"><h4>📊 Sessões, Compras e Conv Rate por Produto</h4><canvas id="chart-combo-products" height="280"></canvas></div>
       </div>
+      <div class="insight-blocks">
+        <div class="insight-block insight-summary" id="charts-products-insight"></div>
+      </div>
       <div id="products-topflop"></div>
       <h3 class="subsection-title">08b — Categorias</h3>
       <div class="table-responsive"><table class="data-table"><thead><tr><th>Categoria</th><th>Views (Δ)</th><th>ShView</th><th>Compras (Δ)</th><th>ShCp</th><th>Conv Rate</th><th>Duração</th><th>Receita (Δ)</th><th>ShRec</th></tr></thead><tbody id="categories-tbody"></tbody><tfoot id="categories-tfoot"></tfoot></table></div>
@@ -152,7 +169,7 @@
     </section>
   </main>
 
-  <footer class="footer"><p>allu Growth Partner Dashboard V6.4 · Gerado em 12/Mar/2026</p></footer>
+  <footer class="footer"><p>allu Growth Partner Dashboard V6.5 · Gerado em 12/Mar/2026</p></footer>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>

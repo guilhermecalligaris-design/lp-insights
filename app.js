@@ -1,4 +1,4 @@
-// V6.4 — App Core + Searchable Filters + Charts + Sections 1–5
+// V6.5 — App Core + Searchable Filters + Charts + Sections 1–5
 // ====================================================
 
 // ---- Searchable Select Component ----
@@ -13,12 +13,10 @@ const CHART_COLORS=["#2ECB6F","#3B82F6","#A855F7","#F59E0B","#EF4444","#06B6D4",
 // ---- Init ----
 document.addEventListener("DOMContentLoaded",()=>{
   const CTX=window.ALLU_CONTEXT;
-  // Build searchable filter options
   const srcOpts=[...CTX.channels].sort((a,b)=>b.shareS-a.shareS).map(c=>({value:c.name,label:c.name}));
   const campOpts=[...CTX.campaigns].sort((a,b)=>b.share-a.share).map(c=>({value:c.name,label:c.name}));
   const catOpts=[...new Set(CTX.products.map(p=>p.category))].map(c=>({value:c,label:c}));
   const prodOpts=[...CTX.products].sort((a,b)=>b.shareV-a.shareV).map(p=>({value:p.name,label:p.name}));
-  // Canal and Grupo from UTM_MAP
   const canais=[...new Set(CTX.channels.map(c=>c.canal))].filter(Boolean).sort();
   const grupos=[...new Set(CTX.channels.map(c=>c.grupo))].filter(Boolean).sort();
   const canalOpts=canais.map(c=>({value:c,label:c}));
@@ -53,7 +51,7 @@ function applyFilters(){
 }
 
 // ---- Formatters ----
-const fmt=n=>{if(n>=1e6)return(n/1e6).toFixed(1).replace(".",",")+"M";if(n>=1e3)return(n/1e3).toFixed(1).replace(".",",")+"K";return n.toLocaleString("pt-BR",{maximumFractionDigits:0});};
+const fmt=n=>{if(n>=1e6)return(n/1e6).toFixed(1).replace(".",",")+`M`;if(n>=1e3)return(n/1e3).toFixed(1).replace(".",",")+`K`;return n.toLocaleString("pt-BR",{maximumFractionDigits:0});};
 const fmtF=n=>n.toLocaleString("pt-BR",{maximumFractionDigits:0});
 const pct=v=>(v*100).toFixed(2).replace(".",",")+"%";
 const pct1=v=>(v*100).toFixed(1).replace(".",",")+"%";
@@ -75,7 +73,10 @@ function renderAll(d){renderKPIs(d);renderChannels(d);renderFunnel(d);renderMone
 function renderKPIs(data){
   const c=data.current.kpis,p=data.previous.kpis,sp=data.current.sparklines;
   const invest=parseFloat(document.getElementById("input-investment").value)||0;
-  const cpa=invest/(c.purchases||1),pdi=invest/((c.revenue*12)||1);
+  // CPA = Investimento / Purchases (purchase events)
+  const cpa=invest/(c.purchases||1);
+  // PDI = Investimento / (Receita Total × 12) — receita = purchaseRevenue
+  const pdi=invest/((c.revenue*12)||1);
   const convRate=c.purchases/(c.sessions||1),prevConvRate=p.purchases/(p.sessions||1);
   const cards=[
     {l:"Sessões",v:fmtF(c.sessions),d:delta(c.sessions,p.sessions),a:dAbs(c.sessions,p.sessions),s:sp.map(x=>x.s),cf:"#2ECB6F"},
@@ -86,12 +87,12 @@ function renderKPIs(data){
     {l:"Engajamento",v:pct1(c.engagementRate),d:delta(c.engagementRate,p.engagementRate),s:sp.map(x=>x.eng),cf:"#2ECB6F"},
     {l:"Bounce Rate",v:pct1(c.bounceRate),d:delta(c.bounceRate,p.bounceRate,true),s:sp.map(x=>x.bounce),cf:"#EF4444"},
     {l:"Duração Média",v:fmtDur(c.avgDuration),d:delta(c.avgDuration,p.avgDuration)},
-    {l:"Receita Bruta",v:fmtMoney(c.revenue),d:delta(c.revenue,p.revenue),a:dAbs(c.revenue,p.revenue),cf:"#F59E0B"},
+    {l:"Receita Bruta (purchaseRevenue)",v:fmtMoney(c.revenue),d:delta(c.revenue,p.revenue),a:dAbs(c.revenue,p.revenue),cf:"#F59E0B"},
     {l:"Investimento (Ads)",v:fmtMoney(invest),d:{text:"input manual",cls:"neutral"}},
     {l:"CPA Bruto",v:fmtMoney(cpa),d:{text:"Invest ÷ Purchases",cls:"neutral"}},
-    {l:"PDI Bruto",v:pct(pdi),d:{text:"Meta ≤ 9.5%",cls:pdi<=0.095?"pdi-good":"pdi-bad"}}
+    {l:"PDI Bruto",v:pct(pdi),d:{text:"Meta ≤ 9.5%",cls:pdi<=0.095?"pdi-good":"pdi-bad"},a:"Invest ÷ (Receita×12)"}
   ];
-  // Funnel — full width, improved layout
+  // Funnel — full height, fills scorecard-right
   const fLabels=["Page View","View Item","Add to Cart","Checkout","Personal Info","Shipping Info","Payment Info","Purchase"];
   const fKeys=Object.keys(data.current.funnel);
   const maxF=data.current.funnel.page_view||1;
@@ -99,22 +100,20 @@ function renderKPIs(data){
 
   document.getElementById("scorecard-layout").innerHTML=`
     <div class="scorecard-left"><div class="kpi-grid">${cards.map((k,i)=>`<div class="kpi-card"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span class="kpi-delta ${k.d.cls}">${k.d.text}</span>${k.a?`<span style="font-size:.58rem;color:var(--text-muted)">(${k.a})</span>`:""}</div>${k.s?`<canvas class="sparkline" id="sp-${i}" style="width:100%;height:28px;margin-top:6px"></canvas>`:""}</div>`).join("")}</div></div>
-    <div class="scorecard-right"><h3 class="funnel-visual-title">Funil de Conversão</h3>
+    <div class="scorecard-right"><h3 class="funnel-visual-title">Funil de Conversão (purchase events)</h3>
     <div class="funnel-full">${fKeys.map((k,i)=>{
       const v=data.current.funnel[k],pv=data.previous.funnel[k]||1;
       const retPct=v/maxF,prevRetPct=(data.previous.funnel[k]||1)/pMaxF;
       const ppDelta=(retPct-prevRetPct)*100;
       const ppSign=ppDelta>=0?"+":"",ppCls=ppDelta>0.5?"up":ppDelta<-0.5?"down":"neutral";
-      // Step-to-step retention (from previous step)
       const prevStepVal=i>0?data.current.funnel[fKeys[i-1]]||1:v;
       const stepRet=i>0?v/(prevStepVal||1):1.0;
       const prevPrevStepVal=i>0?(data.previous.funnel[fKeys[i-1]]||1):1;
       const prevStepRet=i>0?(data.previous.funnel[k]||1)/(prevPrevStepVal||1):1.0;
-      const stepPP=(stepRet-prevStepRet)*100;
       return`<div class="funnel-visual-step"><div class="funnel-visual-label">${fLabels[i]}</div><div class="funnel-visual-bar-wrap"><div class="funnel-visual-bar" style="width:${Math.max(2,retPct*100)}%"></div></div><div class="funnel-visual-val">${fmt(v)}</div><div>${tD(v,pv)}</div><div class="funnel-ret-pct">${i>0?pct1(retPct):""}</div><div>${i>0?`<span class="funnel-ret-delta kpi-delta ${ppCls}">${ppSign}${ppDelta.toFixed(1).replace(".",",")}pp</span>`:""}</div></div>`;}).join("")}</div></div>`;
   requestAnimationFrame(()=>{cards.forEach((k,i)=>{if(k.s)drawSpark(document.getElementById(`sp-${i}`),k.s,k.cf);});});
 
-  // Funnel analysis
+  // Executive summary
   const fVals=fKeys.map(k=>data.current.funnel[k]);
   const fStepRets=fKeys.map((k,i)=>i===0?1.0:fVals[i]/(fVals[i-1]||1));
   const worstStepIdx=fStepRets.slice(1).reduce((w,v,i)=>v<fStepRets[w+1]?i:w,0)+1;
@@ -122,10 +121,10 @@ function renderKPIs(data){
   const overallCR=fVals[fVals.length-1]/(fVals[0]||1);
   const sessD=delta(c.sessions,p.sessions),revD=delta(c.revenue,p.revenue);
 
-  document.getElementById("scorecard-summary").innerHTML=`<p><strong>📊 Resumo Executivo:</strong> ${fmtF(c.sessions)} sessões (${sessD.text} vs anterior) geraram <strong>${fmtMoney(c.revenue)}</strong> em receita bruta (${revD.text}). Foram <strong>${fmtF(c.purchases)} pedidos brutos</strong> (Conv Rate ${pct(convRate)}). CPA = ${fmtMoney(cpa)}, PDI = ${pct(pdi)} ${pdi<=0.095?"✅":"⚠️ acima de 9.5%!"}. Pedidos líquidos estimados (30% aprovação): ~${fmtF(Math.round(c.purchases*0.3))}.</p>
-  <p><strong>📈 Funil:</strong> Converte ${pct(overallCR)} de PV em Purchase. <strong>Maior gargalo:</strong> ${fLabels[worstStepIdx-1]} → ${fLabels[worstStepIdx]} (${pct1(fStepRets[worstStepIdx])}). <strong>Fortaleza:</strong> ${fLabels[bestStepIdx-1]} → ${fLabels[bestStepIdx]} (${pct1(fStepRets[bestStepIdx])}). ${fStepRets[worstStepIdx]<0.6?`Cada +1pp aqui = ~${fmtMoney(Math.round(fVals[worstStepIdx-1]*0.01*overallCR*390))} MRR.`:""}</p>`;
+  document.getElementById("scorecard-summary").innerHTML=`<p><strong>📊 Resumo Executivo:</strong> ${fmtF(c.sessions)} sessões (${sessD.text} vs anterior) geraram <strong>${fmtMoney(c.revenue)}</strong> em purchaseRevenue (${revD.text}). Foram <strong>${fmtF(c.purchases)} purchases</strong> (Conv Rate ${pct(convRate)}). CPA = ${fmtMoney(cpa)}, PDI = ${pct(pdi)} ${pdi<=0.095?"✅":"⚠️ acima de 9.5%!"}.</p>
+  <p><strong>📈 Funil:</strong> Converte ${pct(overallCR)} de PV em Purchase. <strong>Maior gargalo:</strong> ${fLabels[worstStepIdx-1]} → ${fLabels[worstStepIdx]} (${pct1(fStepRets[worstStepIdx])}). <strong>Fortaleza:</strong> ${fLabels[bestStepIdx-1]} → ${fLabels[bestStepIdx]} (${pct1(fStepRets[bestStepIdx])}). ${fStepRets[worstStepIdx]<0.6?`Cada +1pp aqui = ~${fmtMoney(Math.round(fVals[worstStepIdx-1]*0.01*overallCR*GA4_CALIBRATION.avgTicket))} MRR.`:""}</p>`;
 
-  document.getElementById("scorecard-insight").innerHTML=`<p><strong>💡 Ações Prioritárias:</strong></p><p>• <strong>Receita:</strong> ${revD.cls==="up"?"Crescimento validado — escalar canais top.":"Queda detectada — auditar drop por canal."}</p><p>• <strong>CPA:</strong> ${fmtMoney(cpa)}. CPA Líquido: ~${fmtMoney(invest/(c.purchases*0.3||1))}. ${cpa>300?`<em>Se</em> priorizarmos CRM (CR 3-5x), <em>então</em> reduzimos CPA em ~30%.`:""}</p><p>• <strong>Funil:</strong> Foco em ${fLabels[worstStepIdx]} — maior oportunidade de MRR incremental.</p>`;
+  document.getElementById("scorecard-insight").innerHTML=`<p><strong>💡 Ações Prioritárias:</strong></p><p>• <strong>Receita:</strong> ${revD.cls==="up"?"Crescimento validado — escalar canais top.":"Queda detectada — auditar drop por canal."}</p><p>• <strong>CPA:</strong> ${fmtMoney(cpa)}. ${cpa>300?`<em>Se</em> priorizarmos CRM (CR 3-5x), <em>então</em> reduzimos CPA em ~30%.`:""}</p><p>• <strong>Funil:</strong> Foco em ${fLabels[worstStepIdx]} — maior oportunidade de MRR incremental.</p>`;
 }
 
 // === 2. Channels + Charts ===
@@ -136,11 +135,12 @@ function renderChannels(data){
     document.getElementById(tbodyId).innerHTML=list.map((c,i)=>{
       const prev=prevList.find(x=>x.name===c.name)||c;sumS+=c.sessions;sumP+=c.purchases;sumR+=c.revenue;sumDur+=c.avgDuration*c.sessions;sumEng+=c.engRate*c.sessions;
       const shS=c.sessions/(tS||1),shP=c.purchases/(tP||1),shR=c.revenue/(tR||1);
-      const cr=c.purchases/(c.pageviews||c.sessions||1),pCr=prev.purchases/(prev.pageviews||prev.sessions||1);
+      // Conv Rate = purchases / sessions (purchase event based)
+      const cr=c.purchases/(c.sessions||1),pCr=prev.purchases/(prev.sessions||1);
       return`<tr>${hasGroup?`<td>${i+1}</td><td><strong>${c.name}</strong></td><td>${c.canal||c.group}</td>`:`<td><strong>${c.name}</strong></td>`}<td>${fmt(c.sessions)}<br>${tD(c.sessions,prev.sessions)}</td><td>${fmtF(c.purchases)}<br>${tD(c.purchases,prev.purchases)}</td><td>${pct(cr)}<br>${tD(cr,pCr)}</td><td>${pct1(shS)}</td><td>${pct1(shP)}</td><td>${fmtMoney(c.revenue)}<br>${tD(c.revenue,prev.revenue)}</td><td>${pct1(shR)}</td><td>${pct1(c.engRate)}<br>${tD(c.engRate,prev.engRate)}</td><td>${fmtDur(c.avgDuration)}</td></tr>`;
     }).join("");
     const cols=hasGroup?3:1;
-    document.getElementById(tfootId).innerHTML=`<tr><td colspan="${cols}">TOTAL</td><td>${fmt(sumS)}</td><td>${fmtF(sumP)}</td><td>${pct(sumP/(sumS*1.5||1))}</td><td>100%</td><td>100%</td><td>${fmtMoney(sumR)}</td><td>100%</td><td>${pct1(sumEng/(sumS||1))}</td><td>${fmtDur(sumDur/(sumS||1))}</td></tr>`;
+    document.getElementById(tfootId).innerHTML=`<tr><td colspan="${cols}">TOTAL</td><td>${fmt(sumS)}</td><td>${fmtF(sumP)}</td><td>${pct(sumP/(sumS||1))}</td><td>100%</td><td>100%</td><td>${fmtMoney(sumR)}</td><td>100%</td><td>${pct1(sumEng/(sumS||1))}</td><td>${fmtDur(sumDur/(sumS||1))}</td></tr>`;
   };
   renderChTable("channel-groups-tbody","channel-groups-tfoot",data.current.channelGroups,data.previous.channelGroups,false);
   renderChTable("channels-tbody","channels-tfoot",data.current.channels,data.previous.channels,true);
@@ -153,19 +153,25 @@ function renderChannels(data){
 
   // Source insight + plan
   const topSM=[...data.current.channels].sort((a,b)=>b.revenue-a.revenue)[0];
-  const ghostCh=data.current.channels.find(c=>c.name==="(not set)");
-  document.getElementById("channels-insight").innerHTML=`<p><strong>📊 Análise:</strong> <strong>${topSM.name}</strong> lidera receita. ${ghostCh?`"(not set)" = ${fmt(ghostCh.sessions)} sessões com ${pct1(ghostCh.bounceRate)} bounce — auditar UTMs.`:""}</p>`;
-  document.getElementById("channels-plan").innerHTML=`<p><strong>🎯 Hipótese:</strong> <em>Se</em> concentrarmos remarketing nos top 3 canais por CR (${data.current.channels.sort((a,b)=>(b.purchases/(b.sessions||1))-(a.purchases/(a.sessions||1))).slice(0,3).map(c=>c.name).join(", ")}), <em>então</em> esperamos +15% de conversões com mesmo budget, <em>porque</em> tráfego qualificado converte melhor que volume bruto.</p>`;
+  document.getElementById("channels-insight").innerHTML=`<p><strong>📊 Análise:</strong> <strong>${topSM.name}</strong> lidera receita (${fmtMoney(topSM.revenue)}). Top 3 canais por CR: ${[...data.current.channels].sort((a,b)=>(b.purchases/(b.sessions||1))-(a.purchases/(a.sessions||1))).slice(0,3).map(c=>`${c.name} (${pct(c.purchases/(c.sessions||1))})`).join(", ")}.</p>`;
+  document.getElementById("channels-plan").innerHTML=`<p><strong>🎯 Hipótese:</strong> <em>Se</em> concentrarmos remarketing nos top 3 canais por CR, <em>então</em> esperamos +15% de conversões com mesmo budget, <em>porque</em> tráfego qualificado converte melhor que volume bruto.</p>`;
 
-  // PIE CHART — Share Receita por Grupo
+  // PIE + SCATTER
   renderPieChart("chart-pie-grupo",data.current.channelGroups.map(g=>g.name),data.current.channelGroups.map(g=>g.revenue));
-  // PIE CHART — Share Receita por Source
-  const top8=data.current.channels.sort((a,b)=>b.revenue-a.revenue).slice(0,8);
+  const top8=[...data.current.channels].sort((a,b)=>b.revenue-a.revenue).slice(0,8);
   renderPieChart("chart-pie-source",top8.map(c=>c.name),top8.map(c=>c.revenue));
-  // SCATTER — Compras × Conv Rate por Grupo
   renderScatterChart("chart-scatter-grupo",data.current.channelGroups.map(g=>({x:g.purchases,y:g.purchases/(g.sessions||1)*100,label:g.name,r:Math.max(4,g.revenue/50000)})));
-  // SCATTER — Compras × Conv Rate por Source
   renderScatterChart("chart-scatter-source",data.current.channels.map(c=>({x:c.purchases,y:c.purchases/(c.sessions||1)*100,label:c.name,r:Math.max(4,c.revenue/50000)})));
+
+  // Chart insights — Group
+  const grupoByRev=[...data.current.channelGroups].sort((a,b)=>b.revenue-a.revenue);
+  const grupoInsEl=document.getElementById("charts-grupo-insight");
+  if(grupoInsEl) grupoInsEl.innerHTML=`<p><strong>📊 Insight dos Gráficos:</strong> <strong>${grupoByRev[0]?.name}</strong> concentra ${pct1(grupoByRev[0]?.revenue/(grupoByRev.reduce((s,g)=>s+g.revenue,0)||1))} da receita. ${grupoByRev.length>2?`<strong>${grupoByRev[grupoByRev.length-1]?.name}</strong> com menor share — avaliar reposicionamento de budget.`:""}</p><p><strong>🎯 Ação:</strong> <em>Se</em> alocarmos 20% do budget de ${grupoByRev[grupoByRev.length-1]?.name} para ${grupoByRev[0]?.name}, <em>então</em> esperamos +${pct1(0.08)} ROAS, <em>porque</em> escalar canal validado tem ROI superior a testar canal fraco.</p>`;
+
+  // Chart insights — Source
+  const srcByRev=[...data.current.channels].sort((a,b)=>b.revenue-a.revenue);
+  const srcInsEl=document.getElementById("charts-source-insight");
+  if(srcInsEl) srcInsEl.innerHTML=`<p><strong>📊 Insight dos Gráficos:</strong> Top 3 Sources por receita: ${srcByRev.slice(0,3).map(c=>`${c.name} (${fmtMoney(c.revenue)})`).join(", ")}. Scatter mostra que canais com alto volume de purchases nem sempre têm melhor conv rate — priorizar canais no quadrante superior-direito.</p><p><strong>🎯 Ação:</strong> <em>Se</em> segmentarmos budget para canais no Q1 (alto CR + alto purchase), <em>então</em> maximizamos MRR com mesmo investimento.</p>`;
 }
 
 function renderPieChart(canvasId,labels,values){
@@ -176,22 +182,22 @@ function renderPieChart(canvasId,labels,values){
 function renderScatterChart(canvasId,points){
   destroyChart(canvasId);
   const ctx=document.getElementById(canvasId);if(!ctx)return;
-  _charts[canvasId]=new Chart(ctx,{type:"bubble",data:{datasets:[{data:points.map(p=>({x:p.x,y:p.y,r:Math.min(20,p.r||6)})),backgroundColor:points.map((_,i)=>CHART_COLORS[i%CHART_COLORS.length]+"AA"),borderWidth:0}]},options:{...chartDefaults(),plugins:{...chartDefaults().plugins,legend:{display:false},tooltip:{callbacks:{label:ctx2=>{const p=points[ctx2.dataIndex];return p?`${p.label}: ${fmtF(p.x)} compras, ${p.y.toFixed(2)}% CR`:"";}}}},scales:{x:{title:{display:true,text:"Compras",color:"#9CA3AF"},ticks:{color:"#9CA3AF"},grid:{color:"rgba(255,255,255,.05)"}},y:{title:{display:true,text:"Conv Rate %",color:"#9CA3AF"},ticks:{color:"#9CA3AF"},grid:{color:"rgba(255,255,255,.05)"}}}}});
+  _charts[canvasId]=new Chart(ctx,{type:"bubble",data:{datasets:[{data:points.map(p=>({x:p.x,y:p.y,r:Math.min(20,p.r||6)})),backgroundColor:points.map((_,i)=>CHART_COLORS[i%CHART_COLORS.length]+"AA"),borderWidth:0}]},options:{...chartDefaults(),plugins:{...chartDefaults().plugins,legend:{display:false},tooltip:{callbacks:{label:ctx2=>{const p=points[ctx2.dataIndex];return p?`${p.label}: ${fmtF(p.x)} purchases, ${p.y.toFixed(2)}% CR`:"";}}}},scales:{x:{title:{display:true,text:"Purchases",color:"#9CA3AF"},ticks:{color:"#9CA3AF"},grid:{color:"rgba(255,255,255,.05)"}},y:{title:{display:true,text:"Conv Rate %",color:"#9CA3AF"},ticks:{color:"#9CA3AF"},grid:{color:"rgba(255,255,255,.05)"}}}}});
 }
 
 // === 3. Golden Path ===
 function renderFunnel(data){
-  const f=data.current.funnel,ticket=390;
-  const viRate=f.view_item/(f.page_view||1),atcToChk=f.begin_checkout/(f.add_to_cart||1),apiToPur=f.purchase/(f.add_payment_info||1);
+  const f=data.current.funnel,ticket=GA4_CALIBRATION.avgTicket;
+  const viRate=f.view_item/(f.page_view||1),atcToChk=f.begin_checkout/(f.add_to_cart||1),apiToPur=f.purchase/(f.add_payment_info||f.add_shipping_info||1);
   const actions=[
     {step:`Page View → View Item (Retenção: ${pct1(viRate)})`,omtm:"View Item / Page View",meta:`Aumentar de ${pct1(viRate)} para ${pct1(viRate+0.07)}`,se:"implementarmos carrossel de Top Sellers com preço visível acima da dobra",entao:`+7pp na discovery rate`,porque:`${pct1(1-viRate)} dos visitantes nunca veem um produto`,mrr:`~${fmtMoney(Math.round(f.page_view*0.07*atcToChk*(f.purchase/(f.add_shipping_info||1))*ticket))}/mês`},
     {step:`Add to Cart → Checkout (Retenção: ${pct1(atcToChk)})`,omtm:"Checkout / Add to Cart",meta:"Aumentar retenção em 15%",se:`inserirmos widget 'Simulação de Assinatura' (R$${ticket}/mês vs compra) no carrinho`,entao:"+15% início de checkout",porque:"objeção B2C principal é preço — mostrar que assinar custa 8x menos remove fricção",mrr:`~${fmtMoney(Math.round(f.add_to_cart*0.15*0.5*ticket))}/mês`},
-    {step:`Payment Info → Purchase (Retenção: ${pct1(apiToPur)})`,omtm:"Purchase / Payment Info",meta:"Reduzir drop final em 20%",se:"integrarmos pré-qualificação de crédito (Serasa) antes dos dados de cartão",entao:"-20% drop final",porque:"sem pré-check, leads preenchem tudo para serem negados — churn de experiência",mrr:`~${fmtMoney(Math.round(f.add_payment_info*0.2*0.8*ticket))}/mês`},
+    {step:`Payment Info → Purchase (Retenção: ${pct1(apiToPur)})`,omtm:"Purchase / Payment Info",meta:"Reduzir drop final em 20%",se:"integrarmos pré-qualificação de crédito (Serasa) antes dos dados de cartão",entao:"-20% drop final",porque:"sem pré-check, leads preenchem tudo para serem negados — churn de experiência",mrr:`~${fmtMoney(Math.round((f.add_payment_info||f.add_shipping_info)*0.2*0.8*ticket))}/mês`},
   ];
   document.getElementById("funnel-actions").innerHTML=actions.map(a=>`<div class="funnel-action-card"><div class="funnel-action-step">${a.step}</div><div class="hyp-label">OMTM</div><div class="funnel-action-item"><strong>${a.omtm}</strong> — Meta: ${a.meta}</div><div class="hyp-label" style="margin-top:10px">HIPÓTESE (Se → Então → Porque)</div><div class="funnel-action-item"><strong>Se</strong> ${a.se}, <strong>então</strong> ${a.entao}, <strong>porque</strong> ${a.porque}.</div><div class="funnel-action-item mrr"><strong>MRR Incremental (Tkt R$${ticket}):</strong> ${a.mrr}</div></div>`).join("");
 }
 
-// === 4. Money Leaks ===
+// === 4. Money Leaks (compact grid cards) ===
 function renderMoneyLeaks(data){
   const steps=["page_view","view_item","add_to_cart","begin_checkout","add_personal_info","add_shipping_info","add_payment_info","purchase"];
   const labels=["Page View","View Item","Add to Cart","Checkout","Personal Info","Shipping Info","Payment Info","Purchase"];
@@ -208,7 +214,7 @@ function renderMoneyLeaks(data){
   document.getElementById("leaks-grid").innerHTML=html;
   const retRates=[];for(let i=0;i<steps.length-1;i++){retRates.push({l:`${labels[i]}→${labels[i+1]}`,v:(f[steps[i+1]]||0)/(f[steps[i]]||1)});}
   const worst=retRates.reduce((w,x)=>x.v<w.v?x:w);const best=retRates.reduce((w,x)=>x.v>w.v?x:w);
-  document.getElementById("leaks-insight").innerHTML=`<p><strong>💡 Análise:</strong> Maior fricção: <strong>${worst.l}</strong> (${pct1(worst.v)}). Maior fortaleza: <strong>${best.l}</strong> (${pct1(best.v)}). Cada +1pp no gargalo ≈ ${fmtMoney(Math.round(data.current.funnel.page_view*0.01*0.013*390))} MRR.</p>`;
+  document.getElementById("leaks-insight").innerHTML=`<p><strong>💡 Análise:</strong> Maior fricção: <strong>${worst.l}</strong> (${pct1(worst.v)}). Maior fortaleza: <strong>${best.l}</strong> (${pct1(best.v)}). Cada +1pp no gargalo ≈ ${fmtMoney(Math.round(data.current.funnel.page_view*0.01*0.013*GA4_CALIBRATION.avgTicket))} MRR.</p>`;
 }
 
 // === 5. Devices ===

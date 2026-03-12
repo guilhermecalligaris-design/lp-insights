@@ -1,4 +1,4 @@
-// V6.4 — App Part 2: Sections 6-10 + Charts
+// V6.5 — App Part 2: Sections 6-10 + Charts
 
 // ---- Chart color palette (shared with app.js) ----
 const CHART_COLORS2=["#2ECB6F","#3B82F6","#A855F7","#F59E0B","#EF4444","#06B6D4","#EC4899","#10B981","#F97316","#6366F1","#14B8A6","#D946EF","#84CC16","#FB923C","#8B5CF6"];
@@ -25,7 +25,7 @@ function renderAudience(data){
   const renderRows=(tbodyId,list,prevList)=>{
     document.getElementById(tbodyId).innerHTML=list.map(r=>{
       const p=prevList.find(x=>x.name===r.name)||r;
-      return`<tr><td><strong>${r.name}</strong></td><td>${fmt(r.sessions)} ${tD(r.sessions,p.sessions)}</td><td>${fmtF(r.purchases)} ${tD(r.purchases,p.purchases)}</td><td>${fmtMoney(r.revenue)} ${tD(r.revenue,p.revenue)}</td><td>${pct(r.purchases/r.sessions)}</td><td>${pct1(r.sessions/tS)}</td><td>${pct1(r.purchases/tP)}</td></tr>`;
+      return`<tr><td><strong>${r.name}</strong></td><td>${fmt(r.sessions)} ${tD(r.sessions,p.sessions)}</td><td>${fmtF(r.purchases)} ${tD(r.purchases,p.purchases)}</td><td>${fmtMoney(r.revenue)} ${tD(r.revenue,p.revenue)}</td><td>${pct(r.purchases/(r.sessions||1))}</td><td>${pct1(r.sessions/(tS||1))}</td><td>${pct1(r.purchases/(tP||1))}</td></tr>`;
     }).join("");
   };
   renderRows("regions-tbody",data.current.regions,data.previous.regions);
@@ -36,19 +36,27 @@ function renderAudience(data){
   renderScatter2("chart-scatter-geo",cits.map(c=>({x:c.revenue,y:(c.purchases/(c.sessions||1))*100,label:c.name,r:Math.max(4,c.sessions/20000)})),"Receita (R$)","Conv Rate %");
   renderComboChart("chart-combo-geo",cits.map(c=>c.name),cits.map(c=>c.sessions),cits.map(c=>c.purchases*50),cits.map(c=>(c.purchases/(c.sessions||1))*100),"Sessões","Compras (×50)","Conv Rate %");
 
+  // Chart insights for section 6
+  const geoInsEl=document.getElementById("charts-geo-insight");
+  if(geoInsEl){
+    const topRevCity=[...cits].sort((a,b)=>b.revenue-a.revenue)[0];
+    const topCRCity=[...cits].sort((a,b)=>(b.purchases/(b.sessions||1))-(a.purchases/(a.sessions||1)))[0];
+    geoInsEl.innerHTML=`<p><strong>📊 Insight dos Gráficos:</strong> <strong>${topRevCity?.name}</strong> lidera receita (${fmtMoney(topRevCity?.revenue||0)}). <strong>${topCRCity?.name}</strong> tem melhor Conv Rate (${pct(topCRCity?.purchases/(topCRCity?.sessions||1)||0)}). O scatter revela oportunidades em cidades com alto CR mas baixa receita — possível subinvestimento.</p><p><strong>🎯 Ação:</strong> <em>Se</em> escalarmos budget nas cidades Q1 (alto CR + receita), <em>então</em> maximizamos ROAS regional. <em>Se</em> ativarmos campanhas de awareness em cidades com alto CR e baixo volume, <em>então</em> desbloqueamos MRR incremental.</p>`;
+  }
+
   // Top/Flop cards
   const sortBy=(arr,fn,asc)=>[...arr].sort((a,b)=>asc?fn(a)-fn(b):fn(b)-fn(a));
   const regs=data.current.regions;
   const topRevC=sortBy(cits,c=>c.revenue).slice(0,5),flopRevC=sortBy(cits,c=>c.revenue,true).slice(0,5);
   const topShP=sortBy(regs,r=>r.purchases/tP).slice(0,5),flopShP=sortBy(regs,r=>r.purchases/tP,true).slice(0,5);
-  const topCR=sortBy(cits,c=>c.purchases/c.sessions).slice(0,5),flopCR=sortBy(cits,c=>c.purchases/c.sessions,true).slice(0,5);
+  const topCR=sortBy(cits,c=>c.purchases/(c.sessions||1)).slice(0,5),flopCR=sortBy(cits,c=>c.purchases/(c.sessions||1),true).slice(0,5);
   document.getElementById("audience-topflop").innerHTML=`<div class="top-flop-grid">
     <div class="top-flop-card top"><h4>🏆 Top 5 Cidades (Receita)</h4><ol>${topRevC.map(c=>`<li>${c.name}: ${fmtMoney(c.revenue)}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> alocarmos budget nestas praças, <em>então</em> escalamos MRR com CAC validado.</div></div>
     <div class="top-flop-card flop"><h4>⚠️ Flop 5 Cidades (Receita)</h4><ol>${flopRevC.map(c=>`<li>${c.name}: ${fmtMoney(c.revenue)}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> testarmos criativos com prova social regional, <em>então</em> +15% CR.</div></div>
-    <div class="top-flop-card top"><h4>🏆 Top 5 Cidades (Conv Rate)</h4><ol>${topCR.map(c=>`<li>${c.name}: ${pct(c.purchases/c.sessions)}</li>`).join("")}</ol><div class="tf-action">Replicar messaging dessas praças em mercados similares.</div></div>
-    <div class="top-flop-card flop"><h4>⚠️ Flop 5 Cidades (Conv Rate)</h4><ol>${flopCR.map(c=>`<li>${c.name}: ${pct(c.purchases/c.sessions)}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> reduzirmos budget nestas praças, <em>então</em> +5% ROAS.</div></div>
-    <div class="top-flop-card top"><h4>🏆 Top 5 Estados (Share Compras)</h4><ol>${topShP.map(r=>`<li>${r.name}: ${pct1(r.purchases/tP)}</li>`).join("")}</ol><div class="tf-action">Consolidar como praças-âncora com frete subsidiado.</div></div>
-    <div class="top-flop-card flop"><h4>⚠️ Flop 5 Estados (Share Compras)</h4><ol>${flopShP.map(r=>`<li>${r.name}: ${pct1(r.purchases/tP)}</li>`).join("")}</ol><div class="tf-action">Validar disponibilidade do serviço antes de investir em awareness.</div></div>
+    <div class="top-flop-card top"><h4>🏆 Top 5 Cidades (Conv Rate)</h4><ol>${topCR.map(c=>`<li>${c.name}: ${pct(c.purchases/(c.sessions||1))}</li>`).join("")}</ol><div class="tf-action">Replicar messaging dessas praças em mercados similares.</div></div>
+    <div class="top-flop-card flop"><h4>⚠️ Flop 5 Cidades (Conv Rate)</h4><ol>${flopCR.map(c=>`<li>${c.name}: ${pct(c.purchases/(c.sessions||1))}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> reduzirmos budget nestas praças, <em>então</em> +5% ROAS.</div></div>
+    <div class="top-flop-card top"><h4>🏆 Top 5 Estados (Share Compras)</h4><ol>${topShP.map(r=>`<li>${r.name}: ${pct1(r.purchases/(tP||1))}</li>`).join("")}</ol><div class="tf-action">Consolidar como praças-âncora com frete subsidiado.</div></div>
+    <div class="top-flop-card flop"><h4>⚠️ Flop 5 Estados (Share Compras)</h4><ol>${flopShP.map(r=>`<li>${r.name}: ${pct1(r.purchases/(tP||1))}</li>`).join("")}</ol><div class="tf-action">Validar disponibilidade do serviço antes de investir em awareness.</div></div>
   </div>`;
 }
 
@@ -63,7 +71,7 @@ function renderSegments(data){
   document.getElementById("customer-profile").innerHTML=`
     <h3>👤 Raio-X: Perfil Médio do Assinante Allu (B2C)</h3>
     <p>Consumidor <strong>${topDev.name}</strong> (${pct1(topDev.sessions/data.current.kpis.sessions)} sessões) de <strong>${topCity?.name||"SP"}</strong>, via <strong>${topCh?.name||"meta"}</strong>. Navega por <strong>${dur}</strong> com engajamento de ${pct1(data.current.kpis.engagementRate)}, convertendo a ${cr}.</p>
-    <p><strong>Produto top:</strong> ${topProd?.name||"iPhone"} (${fmtF(topProd?.purchases||0)} compras). <strong>Jornada:</strong> Ad → branded search → direct → navega 2-3 SKUs → hesita na análise de crédito.</p>`;
+    <p><strong>Produto top:</strong> ${topProd?.name||"iPhone"} (${fmtF(topProd?.purchases||0)} purchases). <strong>Jornada:</strong> Ad → branded search → direct → navega 2-3 SKUs → hesita na análise de crédito.</p>`;
   const paths=data.current.attributionPaths||[];
   document.getElementById("attribution-tbody").innerHTML=paths.map((p,i)=>`<tr><td>${i+1}</td><td>${p.path}</td><td>${p.label}</td><td>${pct1(p.share)}</td><td>${pct(p.conv)}</td></tr>`).join("");
   const topPath=paths[0]||{label:"Social→Direct",share:0.28};
@@ -101,22 +109,31 @@ function renderProducts(data){
   // Charts for section 8
   const prods=data.current.products;
   renderScatter2("chart-scatter-products",prods.map(p=>({x:p.revenue,y:(p.purchases/(p.views||1))*100,label:p.name,r:Math.max(4,p.views/30000)})),"Receita (R$)","Conv Rate %");
-  const topProds=prods.sort((a,b)=>b.views-a.views).slice(0,10);
+  const topProds=[...prods].sort((a,b)=>b.views-a.views).slice(0,10);
   renderComboChart("chart-combo-products",topProds.map(p=>p.name.substring(0,15)),topProds.map(p=>p.views),topProds.map(p=>p.purchases*100),topProds.map(p=>(p.purchases/(p.views||1))*100),"Views","Compras (×100)","Conv Rate %");
+
+  // Chart insights for section 8
+  const prodsInsEl=document.getElementById("charts-products-insight");
+  if(prodsInsEl){
+    const topRevProd=[...prods].sort((a,b)=>b.revenue-a.revenue)[0];
+    const topCRProd=[...prods].sort((a,b)=>(b.purchases/(b.views||1))-(a.purchases/(a.views||1)))[0];
+    const lowCRHighView=[...prods].sort((a,b)=>b.views-a.views).filter(p=>(p.purchases/(p.views||1))<0.005).slice(0,2);
+    prodsInsEl.innerHTML=`<p><strong>📊 Insight dos Gráficos:</strong> <strong>${topRevProd?.name}</strong> lidera receita (${fmtMoney(topRevProd?.revenue||0)}). <strong>${topCRProd?.name}</strong> tem melhor Conv Rate (${pct(topCRProd?.purchases/(topCRProd?.views||1)||0)}). ${lowCRHighView.length?`Produtos com alto volume de views mas baixo CR: ${lowCRHighView.map(p=>p.name).join(", ")} — revisar PDP.`:""}</p><p><strong>🎯 Plano de Ação:</strong> <em>Se</em> otimizarmos as PDPs dos produtos de alto view/baixo CR (imagens, reviews, comparativo), <em>então</em> esperamos +15-20% CR nesses SKUs. <em>Se</em> escalarmos budget de remarketing nos produtos de alto CR, <em>então</em> maximizamos receita incremental.</p>`;
+  }
 
   // Top/Flop
   const sortBy=(arr,fn,asc)=>[...arr].sort((a,b)=>asc?fn(a)-fn(b):fn(b)-fn(a));
   const tR=prods.reduce((s,p)=>s+p.revenue,0),tP=prods.reduce((s,p)=>s+p.purchases,0);
-  const cats=data.current.categories;const catTR=cats.reduce((s,c)=>s+c.revenue,0);
+  const cats=data.current.categories;
   const topR=sortBy(prods,c=>c.revenue).slice(0,5),flopR=sortBy(prods,c=>c.revenue,true).slice(0,5);
-  const topCR=sortBy(prods,c=>c.purchases/(c.views||1)).slice(0,5),flopCR=sortBy(prods,c=>c.purchases/(c.views||1),true).slice(0,5);
+  const topCR2=sortBy(prods,c=>c.purchases/(c.views||1)).slice(0,5),flopCR2=sortBy(prods,c=>c.purchases/(c.views||1),true).slice(0,5);
   const topCatCR=sortBy(cats,c=>c.purchases/(c.views||1)).slice(0,5),flopCatCR=sortBy(cats,c=>c.purchases/(c.views||1),true).slice(0,5);
 
   document.getElementById("products-topflop").innerHTML=`<div class="top-flop-grid">
     <div class="top-flop-card top"><h4>🏆 Top 5 Produtos (Receita)</h4><ol>${topR.map(c=>`<li>${c.name}: ${fmtMoney(c.revenue)}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> remarketing 70% nesses SKUs, <em>então</em> +12% ROAS.</div></div>
     <div class="top-flop-card flop"><h4>⚠️ Flop 5 Produtos (Receita)</h4><ol>${flopR.map(c=>`<li>${c.name}: ${fmtMoney(c.revenue)}</li>`).join("")}</ol><div class="tf-action">Avaliar se justificam vitrine. Considerar bundling.</div></div>
-    <div class="top-flop-card top"><h4>🏆 Top 5 Produtos (Conv Rate)</h4><ol>${topCR.map(c=>`<li>${c.name}: ${pct(c.purchases/(c.views||1))}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> aumentarmos visibilidade desses, <em>então</em> mais conversões com menos budget.</div></div>
-    <div class="top-flop-card flop"><h4>⚠️ Flop 5 Produtos (Conv Rate)</h4><ol>${flopCR.map(c=>`<li>${c.name}: ${pct(c.purchases/(c.views||1))}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> revisarmos PDP (imagens, reviews), <em>então</em> +15% CR.</div></div>
+    <div class="top-flop-card top"><h4>🏆 Top 5 Produtos (Conv Rate)</h4><ol>${topCR2.map(c=>`<li>${c.name}: ${pct(c.purchases/(c.views||1))}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> aumentarmos visibilidade desses, <em>então</em> mais conversões com menos budget.</div></div>
+    <div class="top-flop-card flop"><h4>⚠️ Flop 5 Produtos (Conv Rate)</h4><ol>${flopCR2.map(c=>`<li>${c.name}: ${pct(c.purchases/(c.views||1))}</li>`).join("")}</ol><div class="tf-action"><em>Se</em> revisarmos PDP (imagens, reviews), <em>então</em> +15% CR.</div></div>
   </div>`;
   document.getElementById("categories-topflop").innerHTML=`<div class="top-flop-grid">
     <div class="top-flop-card top"><h4>🏆 Top Categorias (Receita)</h4><ol>${sortBy(cats,c=>c.revenue).slice(0,5).map(c=>`<li>${c.name}: ${fmtMoney(c.revenue)}</li>`).join("")}</ol><div class="tf-action">Fortalecer storytelling — carro-chefe B2C.</div></div>
@@ -128,7 +145,7 @@ function renderProducts(data){
 
 // === 9. ICE Matrix ===
 function renderICE(data){
-  const f=data.current.funnel,ticket=390;
+  const f=data.current.funnel,ticket=GA4_CALIBRATION.avgTicket;
   const actions=[
     {a:"Carrossel Top Sellers above-the-fold",omtm:"View Item Rate",i:8,c:7,e:9,mrr:Math.round(f.page_view*0.07*0.03*ticket)},
     {a:"Widget Simulação de Parcela no Cart",omtm:"Cart→Checkout Rate",i:9,c:8,e:7,mrr:Math.round(f.add_to_cart*0.15*0.5*ticket)},
@@ -141,7 +158,7 @@ function renderICE(data){
     {a:"LCP Optimization (WebP+CDN)",omtm:"Bounce Mobile",i:6,c:9,e:8,mrr:Math.round(data.current.devices[0].sessions*0.04*0.005*ticket)},
     {a:"Nutrição Email pós-primeiro-acesso",omtm:"Lead→Purchase",i:7,c:6,e:7,mrr:Math.round(data.current.kpis.sessions*0.05*0.05*ticket)},
   ].map(x=>({...x,ice:x.i*x.c*x.e})).sort((a,b)=>b.ice-a.ice);
-  document.getElementById("ice-intro").innerHTML=`<p><strong>📊 Método ICE:</strong> I×C×E ordena prioridade. MRR projetados com ticket R$${ticket}.</p>`;
+  document.getElementById("ice-intro").innerHTML=`<p><strong>📊 Método ICE:</strong> I×C×E ordena prioridade. MRR projetados com ticket R$${ticket} (purchaseRevenue/purchase).</p>`;
   document.getElementById("ice-tbody").innerHTML=actions.map((a,i)=>`<tr><td>${i+1}</td><td><strong>${a.a}</strong></td><td>${a.omtm}</td><td>${a.i}/10</td><td>${a.c}/10</td><td>${a.e}/10</td><td><strong>${a.ice}</strong></td><td>${fmtMoney(a.mrr)}/mês</td></tr>`).join("");
 }
 
@@ -149,7 +166,7 @@ function renderICE(data){
 function renderGrowth(data){
   const cr=data.current.kpis.purchases/(data.current.kpis.sessions||1);
   const rev=data.current.kpis.revenue,sess=data.current.kpis.sessions,purch=data.current.kpis.purchases;
-  const ticket=390,days=data.days||30,monthlyMul=30/days;
+  const ticket=GA4_CALIBRATION.avgTicket,days=data.days||30,monthlyMul=30/days;
   const scenarios=[
     {name:"🔴 Cenário Conservador (+5% CR)",crMod:1.05,sessMod:1.0,desc:"Mantemos tráfego atual + 5% CR via UX."},
     {name:"🟡 Cenário Moderado (+10% CR, +10% Sessões)",crMod:1.10,sessMod:1.10,desc:"CRO + aumento moderado de budget."},
