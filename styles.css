@@ -205,6 +205,22 @@ h1,h2,h3,h4,.kpi-value,.kpi-label,.section-number,.brand-text h1{font-family:'Pl
 .segment-def{font-size:.75rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.55;}
 .segment-meta-item{font-size:.72rem;color:var(--text-muted);margin-bottom:5px;}
 
+/* Filters Grid */
+.filters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end;}
+
+/* Funnel Drop % Badge */
+.funnel-drop-pct{font-size:.55rem;font-weight:700;color:var(--danger);margin-left:4px;white-space:nowrap;}
+
+/* Growth Scenarios */
+.growth-scenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;}
+.growth-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;border-top:4px solid var(--accent);}
+.growth-card h3{font-size:.92rem;font-weight:800;margin-bottom:8px;}
+.growth-desc{font-size:.75rem;color:var(--text-secondary);line-height:1.55;margin-bottom:16px;}
+.growth-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.growth-metric{text-align:center;}
+.growth-metric-label{display:block;font-size:.58rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.growth-metric-value{font-size:.92rem;font-weight:800;color:var(--text);}
+
 /* Footer */
 .footer{text-align:center;padding:28px;font-size:.65rem;color:var(--text-muted);border-top:1px solid var(--border);}
 
