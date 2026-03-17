@@ -17,3 +17,8 @@ Thumbs.db
 node_modules/
 dist/
 build/
+
+# Security — credentials must never be tracked
+credentials.json
+.env.local
+.env
