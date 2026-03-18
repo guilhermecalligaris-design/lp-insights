@@ -180,7 +180,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
       dateRanges,
       dimensions: [{ name: 'itemName' }, { name: 'itemCategory' }],
       metrics: [
-        { name: 'itemViews' }, { name: 'itemsPurchased' },
+        { name: 'itemsPurchased' },
         { name: 'itemRevenue' }
       ],
       orderBys: [{ metric: { metricName: 'itemRevenue' }, desc: true }],
@@ -192,7 +192,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     runReport({
       dateRanges,
       dimensions: [{ name: 'itemCategory' }],
-      metrics: [{ name: 'itemViews' }, { name: 'itemsPurchased' }, { name: 'itemRevenue' }],
+      metrics: [{ name: 'itemsPurchased' }, { name: 'itemRevenue' }],
       orderBys: [{ metric: { metricName: 'itemRevenue' }, desc: true }],
       dimensionFilter: categoryFilter || undefined
     })
@@ -302,9 +302,9 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     .map(r => ({
       name:        r.dimensionValues[0].value,
       category:    r.dimensionValues[1].value,
-      views:       parseInt(r.metricValues[0].value),
-      purchases:   parseFloat(r.metricValues[1].value),
-      revenue:     parseFloat(r.metricValues[2].value),
+      views:       0,
+      purchases:   parseFloat(r.metricValues[0].value),
+      revenue:     parseFloat(r.metricValues[1].value),
       engRate:     0.95,
       duration:    kpis.avgDuration
     }));
@@ -314,9 +314,9 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
     .map(r => ({
       name:        r.dimensionValues[0].value,
-      views:       parseInt(r.metricValues[0].value),
-      purchases:   parseFloat(r.metricValues[1].value),
-      revenue:     parseFloat(r.metricValues[2].value),
+      views:       0,
+      purchases:   parseFloat(r.metricValues[0].value),
+      revenue:     parseFloat(r.metricValues[1].value),
       avgDuration: kpis.avgDuration
     }));
 
@@ -404,14 +404,14 @@ app.get('/api/filters', async (req, res) => {
       runReport({
         dateRanges,
         dimensions: [{ name: 'itemCategory' }],
-        metrics: [{ name: 'itemViews' }],
-        orderBys: [{ metric: { metricName: 'itemViews' }, desc: true }]
+        metrics: [{ name: 'itemsPurchased' }],
+        orderBys: [{ metric: { metricName: 'itemsPurchased' }, desc: true }]
       }),
       runReport({
         dateRanges,
         dimensions: [{ name: 'itemName' }, { name: 'itemCategory' }],
-        metrics: [{ name: 'itemViews' }],
-        orderBys: [{ metric: { metricName: 'itemViews' }, desc: true }],
+        metrics: [{ name: 'itemsPurchased' }],
+        orderBys: [{ metric: { metricName: 'itemsPurchased' }, desc: true }],
         limit: 50
       })
     ]);
