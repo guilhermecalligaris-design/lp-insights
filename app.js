@@ -38,6 +38,15 @@ async function loadFilterOptions() {
     if (!r.ok) return;
     const data = await r.json();
 
+    // Agrupamento Allu
+    const alluSel = document.getElementById("filter-allu-grouping");
+    if (alluSel) {
+      alluSel.innerHTML = '<option value="">Todos</option>';
+      (data.alluGroupings || []).forEach(g => {
+        const o = document.createElement("option"); o.value = g; o.textContent = g; alluSel.appendChild(o);
+      });
+    }
+
     // Canal (channel group)
     const canalSel = document.getElementById("filter-channel");
     if (canalSel) {
@@ -89,20 +98,22 @@ async function loadFilterOptions() {
 
 // ─── Apply Filters → fetch GA4 data ──────────────────────────
 async function applyFilters() {
-  const start    = document.getElementById("filter-date-start").value;
-  const end      = document.getElementById("filter-date-end").value;
-  const compare  = document.getElementById("filter-compare").value;
-  const channel  = document.getElementById("filter-channel")?.value  || "";
-  const source   = document.getElementById("filter-source")?.value   || "";
-  const campaign = document.getElementById("filter-campaign")?.value || "";
-  const category = document.getElementById("filter-category")?.value || "";
-  const product  = document.getElementById("filter-product")?.value  || "";
+  const start         = document.getElementById("filter-date-start").value;
+  const end           = document.getElementById("filter-date-end").value;
+  const compare       = document.getElementById("filter-compare").value;
+  const alluGrouping  = document.getElementById("filter-allu-grouping")?.value || "";
+  const channel       = document.getElementById("filter-channel")?.value  || "";
+  const source        = document.getElementById("filter-source")?.value   || "";
+  const campaign      = document.getElementById("filter-campaign")?.value || "";
+  const category      = document.getElementById("filter-category")?.value || "";
+  const product       = document.getElementById("filter-product")?.value  || "";
 
   if (!start || !end) return;
 
   setLoading(true);
 
   const params = new URLSearchParams({ start, end, compare_mode: compare });
+  if (alluGrouping) params.set("allu_grouping", alluGrouping);
   if (channel)  params.set("channel",  channel);
   if (source)   params.set("source",   source);
   if (campaign) params.set("campaign", campaign);
@@ -138,6 +149,41 @@ function setLoading(on) {
     btn.textContent = "Aplicar Filtros"; btn.disabled = false;
     if (main) main.style.opacity = "1";
   }
+}
+
+// ─── Table Sorting ──────────────────────────────────────────
+function initTableSorting() {
+  document.querySelectorAll(".data-table").forEach(table => {
+    const headers = table.querySelectorAll("thead th");
+    headers.forEach((header, colIdx) => {
+      header.addEventListener("click", () => {
+        const tbody = table.querySelector("tbody");
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const isAsc = header.classList.contains("sortable-asc");
+
+        // Remove sorting from all headers in this table
+        table.querySelectorAll("th").forEach(h => h.classList.remove("sortable-asc", "sortable-desc"));
+
+        // Sort rows
+        rows.sort((a, b) => {
+          const aVal = a.cells[colIdx]?.textContent.trim() || "";
+          const bVal = b.cells[colIdx]?.textContent.trim() || "";
+          const aNum = parseFloat(aVal.replace(/[^\d.-]/g, ""));
+          const bNum = parseFloat(bVal.replace(/[^\d.-]/g, ""));
+          const isNum = !isNaN(aNum) && !isNaN(bNum);
+          const cmp = isNum ? aNum - bNum : aVal.localeCompare(bVal, "pt-BR");
+          return isAsc ? -cmp : cmp;
+        });
+
+        // Append sorted rows back
+        rows.forEach(row => tbody.appendChild(row));
+
+        // Add sorting indicator
+        header.classList.add(isAsc ? "sortable-desc" : "sortable-asc");
+      });
+    });
+  });
 }
 
 // === HELPERS ===
@@ -176,6 +222,7 @@ function renderAll(data) {
   renderKPIs(data); renderChannels(data); renderFunnel(data);
   renderMoneyLeaks(data); renderDevices(data); renderAudience(data);
   renderSegments(data); renderProducts(data);
+  initTableSorting();
 }
 
 // =====================================

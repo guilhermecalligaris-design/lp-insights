@@ -55,6 +55,37 @@ function andFilters(...filters) {
   return { andGroup: { expressions: valid } };
 }
 
+// ─── Allu Grouping Mapping ──────────────────────────────────
+const alluGroupingMap = {
+  'direct|(none)': 'Direto',
+  'google|cpc': 'Google Ads',
+  'meta|paid_social': 'Meta Ads',
+  'google|organic': 'Pesquisa Orgânica',
+  'parcerias|picpay': 'PicPay',
+  'ig|organic_social': 'Instagram',
+  'facebook|paid_social': 'Meta Ads',
+  'bing|organic': 'Pesquisa Orgânica',
+  'hs_email|email': 'CRM',
+  'tiktok|paid_social': 'TikTok Ads',
+  'site|organic_social': 'Site',
+  'crm|crm_email': 'CRM'
+};
+
+function getAlluGrouping(sourceMedium) {
+  if (!sourceMedium) return 'Outros';
+  const parts = sourceMedium.split(' / ');
+  if (parts.length < 2) return 'Outros';
+  const [source, medium] = parts;
+  const key = `${source}|${medium}`.toLowerCase();
+  for (const [pattern, grouping] of Object.entries(alluGroupingMap)) {
+    if (key.includes(pattern.split('|')[0])) {
+      const mediumPat = pattern.split('|')[1];
+      if (medium.toLowerCase().includes(mediumPat)) return grouping;
+    }
+  }
+  return 'Outros';
+}
+
 // ─── Fetch all data for one period ───────────────────────────
 async function fetchPeriod(startDate, endDate, { source, channel, campaign, category, product } = {}) {
   const dateRanges = [{ startDate, endDate }];
@@ -242,14 +273,15 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
 
   // ── Parse Source / Medium ────────────────────────────────────
   const channels = (sourceMediumRes?.rows || []).map(r => ({
-    name:        r.dimensionValues[0].value,
-    group:       r.dimensionValues[1].value,
-    sessions:    parseInt(r.metricValues[0].value),
-    purchases:   parseInt(r.metricValues[1].value),
-    revenue:     parseFloat(r.metricValues[2].value),
-    engRate:     parseFloat(r.metricValues[3].value),
-    avgDuration: parseFloat(r.metricValues[4].value),
-    pageviews:   parseInt(r.metricValues[5].value)
+    name:           r.dimensionValues[0].value,
+    group:          r.dimensionValues[1].value,
+    alluGrouping:   getAlluGrouping(r.dimensionValues[0].value),
+    sessions:       parseInt(r.metricValues[0].value),
+    purchases:      parseInt(r.metricValues[1].value),
+    revenue:        parseFloat(r.metricValues[2].value),
+    engRate:        parseFloat(r.metricValues[3].value),
+    avgDuration:    parseFloat(r.metricValues[4].value),
+    pageviews:      parseInt(r.metricValues[5].value)
   }));
 
   // ── Parse Funnel ─────────────────────────────────────────────
@@ -358,10 +390,10 @@ function fmtDateBR(isoDate) {
 
 // ─── /api/data endpoint ───────────────────────────────────────
 app.get('/api/data', async (req, res) => {
-  const { start, end, compare_mode = 'prev_period', source, channel, campaign, category, product } = req.query;
+  const { start, end, compare_mode = 'prev_period', allu_grouping, source, channel, campaign, category, product } = req.query;
   if (!start || !end) return res.status(400).json({ error: 'start and end required' });
 
-  const filters = { source, channel, campaign, category, product };
+  const filters = { allu_grouping, source, channel, campaign, category, product };
   const cacheKey = JSON.stringify({ start, end, compare_mode, ...filters });
   const cached = cacheGet(cacheKey);
   if (cached) return res.json(cached);
@@ -370,10 +402,20 @@ app.get('/api/data', async (req, res) => {
     const { compareStart, compareEnd } = calcComparisonDates(start, end, compare_mode);
     const days = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
 
+    // Extract allu_grouping from filters and pass separately
+    const filtersForGA4 = { ...filters };
+    delete filtersForGA4.allu_grouping;
+
     const [current, previous] = await Promise.all([
-      fetchPeriod(start, end, filters),
-      fetchPeriod(compareStart, compareEnd, filters)
+      fetchPeriod(start, end, filtersForGA4),
+      fetchPeriod(compareStart, compareEnd, filtersForGA4)
     ]);
+
+    // Filter channels by alluGrouping if specified
+    if (allu_grouping) {
+      current.channels = current.channels.filter(ch => ch.alluGrouping === allu_grouping);
+      previous.channels = previous.channels.filter(ch => ch.alluGrouping === allu_grouping);
+    }
 
     const result = {
       rawStart: start,
@@ -435,6 +477,8 @@ app.get('/api/filters', async (req, res) => {
 
     const channelGroups = [...new Set(sourceMediums.map(s => s.group))].filter(Boolean);
 
+    const alluGroupings = [...new Set(sourceMediums.map(s => getAlluGrouping(s.name)))].filter(Boolean).sort();
+
     const campaigns = (campaignRes.rows || [])
       .map(r => r.dimensionValues[0].value)
       .filter(v => v && v !== '(not set)' && v !== '(direct)');
@@ -447,7 +491,7 @@ app.get('/api/filters', async (req, res) => {
       .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
       .map(r => ({ name: r.dimensionValues[0].value, category: r.dimensionValues[1].value }));
 
-    res.json({ sourceMediums, channelGroups, campaigns, categories, products });
+    res.json({ sourceMediums, channelGroups, alluGroupings, campaigns, categories, products });
   } catch (err) {
     console.error('Filters Error:', err.message);
     res.status(500).json({ error: err.message });
