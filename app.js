@@ -202,9 +202,32 @@ function renderKPIs(data) {
     {l:"PDI Bruto",         v:pct(pdi),                 d:{text:"Meta ≤ 9.5%",cls:pdi<=0.095?"pdi-good":"pdi-bad"}}
   ];
 
-  const fLabels = ["Page View","View Item","Add to Cart","Checkout","Personal Info","Shipping Info","Purchase"];
-  const fKeys   = Object.keys(data.current.funnel);
-  const maxF    = data.current.funnel.page_view || 1;
+  const fSteps = [
+    {key:'page_view',label:'Page View'},
+    {key:'view_item',label:'View Item'},
+    {key:'add_to_cart',label:'Add Cart'},
+    {key:'begin_checkout',label:'Checkout'},
+    {key:'add_personal_info',label:'Personal'},
+    {key:'add_shipping_info',label:'Shipping'},
+    {key:'purchase',label:'Purchase'}
+  ];
+  const cf=data.current.funnel, pf=data.previous.funnel;
+  const maxF=cf.page_view||1;
+  const funnelHtml=fSteps.map((s,i)=>{
+    const v=cf[s.key]||0, pv=pf[s.key]||1;
+    const prevV=i>0?(cf[fSteps[i-1].key]||1):v;
+    const retPct=i>0?v/prevV*100:100;
+    const barPct=v/maxF*100;
+    const retColor=retPct>=70?'var(--success)':retPct>=40?'var(--warning)':'var(--danger)';
+    return`<div class="fs-row">
+      <span class="fs-lbl">${s.label}</span>
+      <div class="fs-bar-wrap"><div class="fs-bar" style="width:${Math.max(2,barPct).toFixed(1)}%"></div></div>
+      <span class="fs-num">${fmt(v)}</span>
+      ${tD(v,pv)}
+      <span class="fs-ret" style="color:${retColor}">${i>0?retPct.toFixed(0)+'%':'—'}</span>
+    </div>`;
+  }).join('');
+  const convGeral=cf.purchase/maxF, prevConvGeral=pf.purchase/(pf.page_view||1);
 
   document.getElementById("scorecard-layout").innerHTML = `
     <div class="scorecard-left"><div class="kpi-grid">${cards.map((k,i)=>`<div class="kpi-card">
@@ -212,12 +235,11 @@ function renderKPIs(data) {
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span class="kpi-delta ${k.d.cls}">${k.d.text}</span>${k.a?`<span style="font-size:.58rem;color:var(--text-muted)">(${k.a})</span>`:""}</div>
       ${k.s?`<canvas class="sparkline" id="sp-${i}" style="width:100%;height:28px;margin-top:6px"></canvas>`:""}
     </div>`).join("")}</div></div>
-    <div class="scorecard-right"><h3 class="funnel-visual-title">Funil de Conversão (purchase events)</h3>
-    ${fKeys.map((k,i)=>{const v=data.current.funnel[k];const pv=data.previous.funnel[k]||1;
-      return`<div class="funnel-visual-step"><div class="funnel-visual-label">${fLabels[i]||k}</div>
-      <div class="funnel-visual-bar-wrap"><div class="funnel-visual-bar" style="width:${Math.max(2,(v/maxF)*100)}%"></div></div>
-      <div class="funnel-visual-val">${fmt(v)}</div>${tD(v,pv)}<span style="font-size:.55rem;color:var(--text-muted)">(${dAbs(v,pv)})</span></div>`;
-    }).join("")}</div>`;
+    <div class="scorecard-right">
+      <h3 class="funnel-title">Funil de Conversão <span style="font-weight:400;font-size:.72rem;color:var(--text-muted)">| % = retenção da etapa anterior</span></h3>
+      <div class="funnel-steps">${funnelHtml}</div>
+      <div class="funnel-conv">Conversão total (PV→Purchase): <strong>${pct(convGeral)}</strong> ${tD(convGeral,prevConvGeral)}</div>
+    </div>`;
 
   requestAnimationFrame(()=>{ cards.forEach((k,i)=>{ if(k.s) drawSpark(document.getElementById(`sp-${i}`),k.s,k.cf); }); });
 
