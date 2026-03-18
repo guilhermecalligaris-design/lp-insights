@@ -27,6 +27,12 @@ const analyticsClient = new BetaAnalyticsDataClient(
 app.use(cors());
 app.use(express.static(__dirname));
 
+// ─── Cache (1h TTL, max 50 entries) ──────────────────────────
+const _cache = new Map();
+const CACHE_TTL = 3600000;
+function cacheGet(k) { const e=_cache.get(k); if(!e||Date.now()-e.t>CACHE_TTL){_cache.delete(k);return null;} return e.d; }
+function cacheSet(k,d) { if(_cache.size>=50) _cache.delete(_cache.keys().next().value); _cache.set(k,{t:Date.now(),d}); }
+
 // ─── Helper: run a GA4 report ────────────────────────────────
 async function runReport(params) {
   const [response] = await analyticsClient.runReport({
@@ -63,24 +69,18 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
   const productFilter = dimFilter('itemName', product);
   const productDimFilter = andFilters(categoryFilter, productFilter);
 
+  // Ordem real da jornada Allu (Brain Growth Partner)
   const funnelEvents = [
-    'page_view', 'view_item', 'add_to_cart', 'begin_checkout',
+    'page_view', 'view_item', 'begin_checkout', 'add_to_cart',
     'add_personal_info', 'add_shipping_info', 'add_payment_info', 'purchase'
   ];
+  const evtNameFilter = { filter: { fieldName: 'eventName', inListFilter: { values: funnelEvents } } };
+  const funnelDimFilter = trafficFilter
+    ? { andGroup: { expressions: [evtNameFilter, trafficFilter] } }
+    : evtNameFilter;
 
-  // Run all 10 queries in parallel
-  const [
-    kpiRes,
-    sparkRes,
-    channelGroupRes,
-    sourceMediumRes,
-    funnelRes,
-    deviceRes,
-    regionRes,
-    cityRes,
-    productRes,
-    categoryRes
-  ] = await Promise.all([
+  // Run 10 queries in 2 batches of 5 to avoid exceeding concurrent quota
+  const batch1 = await Promise.allSettled([
 
     // 1. KPI totals
     runReport({
@@ -136,13 +136,11 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
       dateRanges,
       dimensions: [{ name: 'eventName' }],
       metrics: [{ name: 'eventCount' }],
-      dimensionFilter: {
-        filter: {
-          fieldName: 'eventName',
-          inListFilter: { values: funnelEvents }
-        }
-      }
-    }),
+      dimensionFilter: funnelDimFilter
+    })
+  ]);
+
+  const batch2 = await Promise.allSettled([
 
     // 6. Device categories
     runReport({
@@ -198,8 +196,14 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     })
   ]);
 
+  const _settled = [...batch1, ...batch2];
+
+  // Extrair resultados com fallback null em caso de falha individual
+  const [kpiRes,sparkRes,channelGroupRes,sourceMediumRes,funnelRes,deviceRes,regionRes,cityRes,productRes,categoryRes]
+    = _settled.map((r,i) => { if(r.status==='rejected'){console.warn(`GA4 query ${i} failed:`,r.reason?.message);return null;} return r.value; });
+
   // ── Parse KPIs ──────────────────────────────────────────────
-  const kr = kpiRes.rows?.[0]?.metricValues || [];
+  const kr = kpiRes?.rows?.[0]?.metricValues || [];
   const kpis = {
     sessions:        parseInt(kr[0]?.value  || 0),
     users:           parseInt(kr[1]?.value  || 0),
@@ -212,7 +216,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
   };
 
   // ── Parse Sparklines ────────────────────────────────────────
-  const sparklines = (sparkRes.rows || []).map(r => {
+  const sparklines = (sparkRes?.rows || []).map(r => {
     const raw = r.dimensionValues[0].value; // "20260301"
     const d = `${raw.slice(6,8)}/${raw.slice(4,6)}`;
     return {
@@ -225,7 +229,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
   });
 
   // ── Parse Channel Groups ─────────────────────────────────────
-  const channelGroups = (channelGroupRes.rows || []).map(r => ({
+  const channelGroups = (channelGroupRes?.rows || []).map(r => ({
     name:        r.dimensionValues[0].value,
     sessions:    parseInt(r.metricValues[0].value),
     purchases:   parseInt(r.metricValues[1].value),
@@ -236,7 +240,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
   }));
 
   // ── Parse Source / Medium ────────────────────────────────────
-  const channels = (sourceMediumRes.rows || []).map(r => ({
+  const channels = (sourceMediumRes?.rows || []).map(r => ({
     name:        r.dimensionValues[0].value,
     group:       r.dimensionValues[1].value,
     sessions:    parseInt(r.metricValues[0].value),
@@ -249,22 +253,24 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
 
   // ── Parse Funnel ─────────────────────────────────────────────
   const funnelMap = {};
-  (funnelRes.rows || []).forEach(r => {
+  (funnelRes?.rows || []).forEach(r => {
     funnelMap[r.dimensionValues[0].value] = parseInt(r.metricValues[0].value);
   });
+  // Ordem real: PV → VI → Checkout → Cart → Personal → Shipping → Payment → Purchase
   const funnel = {
-    page_view:        funnelMap['page_view']        || 0,
-    view_item:        funnelMap['view_item']         || 0,
-    add_to_cart:      funnelMap['add_to_cart']       || 0,
-    begin_checkout:   funnelMap['begin_checkout']    || 0,
-    add_personal_info: funnelMap['add_personal_info'] || funnelMap['add_payment_info'] || 0,
-    add_shipping_info: funnelMap['add_shipping_info'] || 0,
-    purchase:         funnelMap['purchase']          || kpis.purchases
+    page_view:         funnelMap['page_view']         || 0,
+    view_item:         funnelMap['view_item']          || 0,
+    begin_checkout:    funnelMap['begin_checkout']     || 0,
+    add_to_cart:       funnelMap['add_to_cart']        || 0,
+    add_personal_info: funnelMap['add_personal_info']  || 0,
+    add_shipping_info: funnelMap['add_shipping_info']  || 0,
+    add_payment_info:  funnelMap['add_payment_info']   || 0,
+    purchase:          funnelMap['purchase']           || kpis.purchases
   };
 
   // ── Parse Devices ────────────────────────────────────────────
   const deviceNameMap = { mobile: 'Mobile', desktop: 'Desktop', tablet: 'Tablet' };
-  const devices = (deviceRes.rows || []).map(r => ({
+  const devices = (deviceRes?.rows || []).map(r => ({
     name:        deviceNameMap[r.dimensionValues[0].value] || r.dimensionValues[0].value,
     sessions:    parseInt(r.metricValues[0].value),
     purchases:   parseInt(r.metricValues[1].value),
@@ -273,7 +279,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
   }));
 
   // ── Parse Regions ─────────────────────────────────────────────
-  const regions = (regionRes.rows || [])
+  const regions = (regionRes?.rows || [])
     .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
     .map(r => ({
       name:      r.dimensionValues[0].value,
@@ -285,7 +291,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     }));
 
   // ── Parse Cities ──────────────────────────────────────────────
-  const cities = (cityRes.rows || [])
+  const cities = (cityRes?.rows || [])
     .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
     .map(r => ({
       name:      r.dimensionValues[0].value,
@@ -297,7 +303,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     }));
 
   // ── Parse Products ────────────────────────────────────────────
-  const products = (productRes.rows || [])
+  const products = (productRes?.rows || [])
     .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
     .map(r => ({
       name:        r.dimensionValues[0].value,
@@ -310,7 +316,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
     }));
 
   // ── Parse Categories ──────────────────────────────────────────
-  const categories = (categoryRes.rows || [])
+  const categories = (categoryRes?.rows || [])
     .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
     .map(r => ({
       name:        r.dimensionValues[0].value,
@@ -355,6 +361,9 @@ app.get('/api/data', async (req, res) => {
   if (!start || !end) return res.status(400).json({ error: 'start and end required' });
 
   const filters = { source, channel, campaign, category, product };
+  const cacheKey = JSON.stringify({ start, end, compare_mode, ...filters });
+  const cached = cacheGet(cacheKey);
+  if (cached) return res.json(cached);
 
   try {
     const { compareStart, compareEnd } = calcComparisonDates(start, end, compare_mode);
@@ -365,15 +374,18 @@ app.get('/api/data', async (req, res) => {
       fetchPeriod(compareStart, compareEnd, filters)
     ]);
 
-    res.json({
+    const result = {
       rawStart: start,
       rawEnd: end,
       label: `${days} dias`,
+      days,
       currentText: `${fmtDateBR(start)} até ${fmtDateBR(end)}`,
       previousText: `${fmtDateBR(compareStart)} até ${fmtDateBR(compareEnd)}`,
       current,
       previous
-    });
+    };
+    cacheSet(cacheKey, result);
+    res.json(result);
   } catch (err) {
     console.error('GA4 Error:', err.message);
     res.status(500).json({ error: err.message });
@@ -426,11 +438,11 @@ app.get('/api/filters', async (req, res) => {
       .map(r => r.dimensionValues[0].value)
       .filter(v => v && v !== '(not set)' && v !== '(direct)');
 
-    const categories = (categoryRes.rows || [])
+    const categories = (categoryRes?.rows || [])
       .map(r => r.dimensionValues[0].value)
       .filter(v => v && v !== '(not set)');
 
-    const products = (productRes.rows || [])
+    const products = (productRes?.rows || [])
       .filter(r => r.dimensionValues[0].value && r.dimensionValues[0].value !== '(not set)')
       .map(r => ({ name: r.dimensionValues[0].value, category: r.dimensionValues[1].value }));
 

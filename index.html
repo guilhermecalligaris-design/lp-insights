@@ -15,7 +15,7 @@
     <div class="header-inner">
       <div class="header-top-row">
         <div class="brand">
-          <div class="logo-circle">a.</div>
+          <img src="assets/logo.png" class="brand-logo" alt="Allu">
           <div class="brand-text"><h1>Inteligência Operacional</h1><p class="subtitle">Growth Intelligence Dashboard</p></div>
         </div>
         <div class="header-controls">
@@ -27,59 +27,45 @@
         </div>
       </div>
 
-      <!-- V6.2 Filters -->
-      <div class="filters-row">
-        <div class="filter-group">
-          <label>Período Principal</label>
+      <!-- V6.2 Filters — compact single row -->
+      <div class="filters-compact">
+        <div class="fc-group">
+          <label>Período</label>
           <div class="date-flex">
             <input type="date" id="filter-date-start">
-            <span class="date-sep">até</span>
+            <span class="date-sep">→</span>
             <input type="date" id="filter-date-end">
           </div>
         </div>
-        <div class="filter-group" style="min-width:220px">
-          <label>Comparativo de Período</label>
+        <div class="fc-group">
+          <label>Comparar</label>
           <select id="filter-compare">
-            <option value="prev_period">Período Anterior (mesmo nº dias)</option>
-            <option value="prev_month_dates">Mês Anterior (dias corridos)</option>
-            <option value="prev_month_days">Mês Anterior (dia da semana)</option>
+            <option value="prev_period">Período Anterior (mesmos dias)</option>
+            <option value="prev_month_dates">Mês Anterior (corridos)</option>
+            <option value="prev_month_days">Mês Anterior (dia semana)</option>
           </select>
         </div>
-      </div>
-      <div class="filters-row" style="margin-top:8px">
-        <div class="filter-group">
-          <label>Canal (Grupo)</label>
-          <select id="filter-channel">
-            <option value="">Todos os Grupos</option>
-          </select>
+        <div class="fc-group">
+          <label>Canal</label>
+          <select id="filter-channel"><option value="">Todos os Grupos</option></select>
         </div>
-        <div class="filter-group">
+        <div class="fc-group">
           <label>Source / Medium</label>
-          <select id="filter-source">
-            <option value="">Todos os Canais</option>
-          </select>
+          <select id="filter-source"><option value="">Todos os Canais</option></select>
         </div>
-        <div class="filter-group">
+        <div class="fc-group">
           <label>Campanha</label>
-          <select id="filter-campaign">
-            <option value="">Todas as Campanhas</option>
-          </select>
+          <select id="filter-campaign"><option value="">Todas as Campanhas</option></select>
         </div>
-        <div class="filter-group">
-          <label>Brand / Category</label>
-          <select id="filter-category">
-            <option value="">Todas</option>
-          </select>
+        <div class="fc-group">
+          <label>Categoria</label>
+          <select id="filter-category"><option value="">Todas</option></select>
         </div>
-        <div class="filter-group">
+        <div class="fc-group">
           <label>Produto</label>
-          <select id="filter-product">
-            <option value="">Todos os Produtos</option>
-          </select>
+          <select id="filter-product"><option value="">Todos os Produtos</option></select>
         </div>
-        <div class="filter-group filter-action">
-          <button id="btn-apply-filters">Aplicar Filtros</button>
-        </div>
+        <button id="btn-apply-filters">Aplicar Filtros</button>
       </div>
     </div>
     <div class="period-badge" id="period-badge">Carregando dados...</div>
@@ -95,8 +81,12 @@
         <span class="section-subtitle">Saúde de Tráfego, Receita (purchaseRevenue), Investimento e Funil</span>
       </div>
       <div class="investment-row">
-        <span>💰 Investimento Total (Google + Meta) do período: R$</span>
+        <span>💰 Investimento Total (Google + Meta): R$</span>
         <input type="number" id="input-investment" value="75000" step="1000">
+        <span class="invest-sep">|</span>
+        <span>📊 Aprovação de Risco:</span>
+        <input type="number" id="input-approval-rate" value="30" step="1" min="1" max="100" style="width:56px;text-align:center">
+        <span>%</span>
         <button id="btn-update-invest" class="update-btn">Atualizar</button>
       </div>
       <div class="scorecard-layout" id="scorecard-layout"></div>
