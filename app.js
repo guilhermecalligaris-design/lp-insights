@@ -184,61 +184,124 @@ function renderAll(data) {
 function renderKPIs(data) {
   const c=data.current.kpis, p=data.previous.kpis, sp=data.current.sparklines;
   const invest = parseFloat(document.getElementById("input-investment").value) || 0;
-  const cpa = invest / (c.purchases||1);
-  const pdi = invest / ((c.revenue*12)||1);
+  const approvalRate = (parseFloat(document.getElementById("input-approval-rate")?.value) || 30) / 100;
+  const days = data.days || 30;
+
+  // Bruto
+  const cpaBruto = invest / (c.purchases||1);
+  const pdiBruto = invest / ((c.revenue*12)||1);
+  // Líquido (aplica taxa de aprovação)
+  const pedidosLiquidos = Math.round(c.purchases * approvalRate);
+  const receitaLiquida  = c.revenue * approvalRate;
+  const cpaLiquido      = invest / (pedidosLiquidos||1);
+  const pdiLiquido      = invest / ((receitaLiquida*12)||1);
+  // MRR Projetado (receita líquida diária × 30)
+  const mrrProjetado    = (receitaLiquida / (days||1)) * 30;
+  const metaMRR         = 27000000;
+  const pctMeta         = mrrProjetado / metaMRR;
+
   const convRate     = c.purchases / (data.current.funnel.page_view||1);
   const prevConvRate = p.purchases / (data.previous.funnel.page_view||1);
 
   const cards = [
-    {l:"Sessões",           v:fmtF(c.sessions),        d:delta(c.sessions,p.sessions),            a:dAbs(c.sessions,p.sessions),       s:sp.map(x=>x.s),      cf:"#2ECB6F"},
-    {l:"Usuários Ativos",   v:fmtF(c.users),            d:delta(c.users,p.users),                  a:dAbs(c.users,p.users),             s:sp.map(x=>x.u),      cf:"#3B82F6"},
-    {l:"Novos Usuários",    v:fmtF(c.newUsers),         d:delta(c.newUsers,p.newUsers),             a:dAbs(c.newUsers,p.newUsers)},
-    {l:"Engajamento",       v:pct1(c.engagementRate),   d:delta(c.engagementRate,p.engagementRate), s:sp.map(x=>x.eng),    cf:"#2ECB6F"},
-    {l:"Bounce Rate",       v:pct1(c.bounceRate),       d:delta(c.bounceRate,p.bounceRate,true),    s:sp.map(x=>x.bounce), cf:"#EF4444"},
-    {l:"Duração Média",     v:fmtDur(c.avgDuration),    d:delta(c.avgDuration,p.avgDuration)},
-    {l:"Receita Bruta (purchaseRevenue)", v:fmtMoney(c.revenue), d:delta(c.revenue,p.revenue), a:dAbs(c.revenue,p.revenue), cf:"#F59E0B"},
-    {l:"Investimento (Ads)",v:fmtMoney(invest),         d:{text:"input manual",cls:"neutral"}},
-    {l:"CPA Bruto",         v:fmtMoney(cpa),            d:{text:"Invest ÷ Purchases",cls:"neutral"}},
-    {l:"PDI Bruto",         v:pct(pdi),                 d:{text:"Meta ≤ 9.5%",cls:pdi<=0.095?"pdi-good":"pdi-bad"}}
+    {l:"Sessões",              v:fmtF(c.sessions),        d:delta(c.sessions,p.sessions),            a:dAbs(c.sessions,p.sessions),  s:sp.map(x=>x.s), cf:"#2ECB6F"},
+    {l:"Usuários Ativos",      v:fmtF(c.users),            d:delta(c.users,p.users),                  a:dAbs(c.users,p.users),        s:sp.map(x=>x.u), cf:"#3B82F6"},
+    {l:"Novos Usuários",       v:fmtF(c.newUsers),         d:delta(c.newUsers,p.newUsers),             a:dAbs(c.newUsers,p.newUsers)},
+    {l:"Engajamento",          v:pct1(c.engagementRate),   d:delta(c.engagementRate,p.engagementRate), s:sp.map(x=>x.eng),  cf:"#2ECB6F"},
+    {l:"Bounce Rate",          v:pct1(c.bounceRate),       d:delta(c.bounceRate,p.bounceRate,true),    s:sp.map(x=>x.bounce),cf:"#EF4444"},
+    {l:"Duração Média",        v:fmtDur(c.avgDuration),    d:delta(c.avgDuration,p.avgDuration)},
+    {l:"Receita Bruta",        v:fmtMoney(c.revenue),      d:delta(c.revenue,p.revenue),               a:dAbs(c.revenue,p.revenue), cf:"#F59E0B"},
+    {l:"Investimento (Ads)",   v:fmtMoney(invest),         d:{text:"input manual",cls:"neutral"}},
+    {l:"Pedidos Brutos (GA4)", v:fmtF(c.purchases),        d:delta(c.purchases,p.purchases),           a:dAbs(c.purchases,p.purchases)},
+    {l:`Pedidos Líquidos (~${Math.round(approvalRate*100)}% aprov.)`, v:fmtF(pedidosLiquidos), d:{text:`${c.purchases} × ${Math.round(approvalRate*100)}%`,cls:"neutral"}, highlight:"liquid"},
+    {l:"CPA Bruto",            v:fmtMoney(cpaBruto),       d:{text:"Invest ÷ Pedidos Brutos",cls:"neutral"}},
+    {l:"CPA Líquido",          v:fmtMoney(cpaLiquido),     d:{text:"Invest ÷ Pedidos Líquidos",cls:"neutral"}, highlight:"liquid"},
+    {l:"PDI Bruto",            v:pct(pdiBruto),            d:{text:"Meta ≤ 9.5%",cls:pdiBruto<=0.095?"pdi-good":"pdi-bad"}},
+    {l:"PDI Líquido",          v:pct(pdiLiquido),          d:{text:"Meta ≤ 9.5%",cls:pdiLiquido<=0.095?"pdi-good":"pdi-bad"}, highlight:pdiLiquido>0.095?"danger":"liquid"},
+    {l:"MRR Projetado (30d)",  v:fmtMoney(mrrProjetado),   d:{text:`${pct1(pctMeta)} da meta R$27M`,cls:pctMeta>=1?"pdi-good":pctMeta>=0.7?"neutral":"pdi-bad"}, highlight:"liquid"}
   ];
 
+  // Ordem real da jornada Allu (Brain Growth Partner)
   const fSteps = [
-    {key:'page_view',label:'Page View'},
-    {key:'view_item',label:'View Item'},
-    {key:'add_to_cart',label:'Add Cart'},
-    {key:'begin_checkout',label:'Checkout'},
-    {key:'add_personal_info',label:'Personal'},
-    {key:'add_shipping_info',label:'Shipping'},
-    {key:'purchase',label:'Purchase'}
+    {key:'page_view',         label:'Page View'},
+    {key:'view_item',         label:'View Item'},
+    {key:'begin_checkout',    label:'Checkout'},
+    {key:'add_to_cart',       label:'Add Cart'},
+    {key:'add_personal_info', label:'Personal Info'},
+    {key:'add_shipping_info', label:'Shipping Info'},
+    {key:'add_payment_info',  label:'Payment Info'},
+    {key:'purchase',          label:'Purchase (Bruto)'}
   ];
   const cf=data.current.funnel, pf=data.previous.funnel;
   const maxF=cf.page_view||1;
+
   const funnelHtml=fSteps.map((s,i)=>{
     const v=cf[s.key]||0, pv=pf[s.key]||1;
-    const prevV=i>0?(cf[fSteps[i-1].key]||1):v;
-    const retPct=i>0?v/prevV*100:100;
     const barPct=v/maxF*100;
-    const retColor=retPct>=70?'var(--success)':retPct>=40?'var(--warning)':'var(--danger)';
-    return`<div class="fs-row">
-      <span class="fs-lbl">${s.label}</span>
-      <div class="fs-bar-wrap"><div class="fs-bar" style="width:${Math.max(2,barPct).toFixed(1)}%"></div></div>
-      <span class="fs-num">${fmt(v)}</span>
-      ${tD(v,pv)}
-      <span class="fs-ret" style="color:${retColor}">${i>0?retPct.toFixed(0)+'%':'—'}</span>
+    const volD=delta(v,pv);
+
+    // step-to-step conversion rate (current period)
+    const prevStepV = i>0 ? (cf[fSteps[i-1].key]||1) : v;
+    const prevStepPrev = i>0 ? (pf[fSteps[i-1].key]||1) : pv;
+    const stepRate = i>0 ? v/prevStepV : 1;
+    const stepRatePrev = i>0 ? pv/prevStepPrev : 1;
+    const ppDelta = i>0 ? (stepRate - stepRatePrev)*100 : null;
+    const ppText = ppDelta!==null ? (ppDelta>=0?'+':'')+ppDelta.toFixed(1)+'pp' : '—';
+    const ppColor = ppDelta===null?'var(--text-muted)':ppDelta>=0?'var(--success)':'var(--danger)';
+    const rateColor = i===0?'var(--text-muted)':stepRate>=0.7?'var(--success)':stepRate>=0.4?'var(--warning)':'var(--danger)';
+
+    return`<div class="fn-step">
+      <span class="fn-lbl">${s.label}</span>
+      <div class="fn-track"><div class="fn-fill" style="width:${Math.max(1,barPct).toFixed(1)}%"></div></div>
+      <span class="fn-vol">${fmt(v)}</span>
+      <span class="fn-vol-d"><span class="kpi-delta ${volD.cls}">${volD.text}</span></span>
+      <span class="fn-rate" style="color:${rateColor}">${i>0?(stepRate*100).toFixed(0)+'%':'100%'}</span>
+      <span class="fn-pp" style="color:${ppColor}">${ppText}</span>
     </div>`;
   }).join('');
-  const convGeral=cf.purchase/maxF, prevConvGeral=pf.purchase/(pf.page_view||1);
+
+  const convGeral=cf.purchase/(maxF||1), prevConvGeral=pf.purchase/(pf.page_view||1);
+
+  // PDI gauge html
+  const pdiGaugePct = Math.min(pdiLiquido / 0.095 * 100, 100);
+  const pdiGaugeColor = pdiLiquido <= 0.095 ? 'var(--success)' : 'var(--danger)';
+  const pdiGaugeHtml = `<div class="pdi-gauge-wrap">
+    <div class="pdi-gauge-label">PDI Líquido vs Meta 9,5%</div>
+    <div class="pdi-gauge-track"><div class="pdi-gauge-fill" style="width:${pdiGaugePct.toFixed(1)}%;background:${pdiGaugeColor}"></div><div class="pdi-gauge-mark"></div></div>
+    <div class="pdi-gauge-vals"><span>${pct(pdiLiquido)}</span><span style="color:var(--text-muted)">meta: 9,5%</span></div>
+  </div>`;
 
   document.getElementById("scorecard-layout").innerHTML = `
-    <div class="scorecard-left"><div class="kpi-grid">${cards.map((k,i)=>`<div class="kpi-card">
-      <div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div>
-      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span class="kpi-delta ${k.d.cls}">${k.d.text}</span>${k.a?`<span style="font-size:.58rem;color:var(--text-muted)">(${k.a})</span>`:""}</div>
-      ${k.s?`<canvas class="sparkline" id="sp-${i}" style="width:100%;height:28px;margin-top:6px"></canvas>`:""}
-    </div>`).join("")}</div></div>
+    <div class="scorecard-left">
+      <div class="kpi-grid">${cards.map((k,i)=>`<div class="kpi-card${k.highlight?` kpi-${k.highlight}`:''}">
+        <div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span class="kpi-delta ${k.d.cls}">${k.d.text}</span>${k.a?`<span style="font-size:.58rem;color:var(--text-muted)">(${k.a})</span>`:""}</div>
+        ${k.s?`<canvas class="sparkline" id="sp-${i}" style="width:100%;height:28px;margin-top:6px"></canvas>`:""}
+      </div>`).join("")}</div>
+      ${pdiGaugeHtml}
+    </div>
     <div class="scorecard-right">
-      <h3 class="funnel-title">Funil de Conversão <span style="font-weight:400;font-size:.72rem;color:var(--text-muted)">| % = retenção da etapa anterior</span></h3>
-      <div class="funnel-steps">${funnelHtml}</div>
-      <div class="funnel-conv">Conversão total (PV→Purchase): <strong>${pct(convGeral)}</strong> ${tD(convGeral,prevConvGeral)}</div>
+      <div class="fn-header">
+        <span class="fn-title">Funil de Conversão GA4</span>
+        <span class="fn-legend">
+          <span>Vol. Δ = vs período ant.</span>
+          <span>% = retenção etapa</span>
+          <span>pp = Δ da quebra</span>
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:72px 1fr 58px 48px 44px 48px;gap:5px;padding:4px 0 6px;border-bottom:2px solid var(--border);margin-bottom:2px;">
+        <span style="font-size:.5rem;font-weight:800;text-transform:uppercase;color:var(--text-muted)">Etapa</span>
+        <span style="font-size:.5rem;font-weight:800;text-transform:uppercase;color:var(--text-muted)">Volume</span>
+        <span style="font-size:.5rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);text-align:right">Total</span>
+        <span style="font-size:.5rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);text-align:right">Vol Δ</span>
+        <span style="font-size:.5rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);text-align:right">Ret%</span>
+        <span style="font-size:.5rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);text-align:right">pp Δ</span>
+      </div>
+      <div class="fn-steps">${funnelHtml}</div>
+      <div class="fn-footer">
+        <span>Conv. global PV→Purchase: <strong>${pct(convGeral)}</strong></span>
+        ${tD(convGeral,prevConvGeral)}
+      </div>
     </div>`;
 
   requestAnimationFrame(()=>{ cards.forEach((k,i)=>{ if(k.s) drawSpark(document.getElementById(`sp-${i}`),k.s,k.cf); }); });
