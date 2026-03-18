@@ -398,6 +398,18 @@ function renderChannels(data) {
   if (topG) document.getElementById("channel-groups-insight").innerHTML=`<p><strong>📊 Resumo (Agrupamentos):</strong> O grupo <strong>${topG.name}</strong> lidera em receita com ${fmtMoney(topG.revenue)}, enquanto <strong>${lowCR?.name||"—"}</strong> tem a menor taxa de conversão. A concentração em Paid Social indica dependência de mídia paga — diversificar canais orgânicos reduziria o CAC médio.</p>
   <p><strong>💡 Insight:</strong> <em>Se</em> redirecionarmos 10% do budget de Paid Social para SEO e Content, <em>então</em> esperamos +15% em sessões orgânicas em 90 dias, <em>porque</em> o CR orgânico tende a ser superior ao pago.</p>`;
 
+  // Render charts for channel groups
+  const channelGroupsScatterData = data.current.channelGroups.map(cg => ({
+    label: cg.name,
+    x: cg.revenue,
+    y: cg.purchases / (cg.pageviews || 1)
+  }));
+  const channelGroupsComboData = data.current.channelGroups.map(cg => ({
+    label: cg.name,
+    x: cg.sessions,
+    y: cg.purchases / (cg.pageviews || 1)
+  }));
+
   const topSM = [...data.current.channels].sort((a,b)=>b.revenue-a.revenue)[0];
   if (topSM) document.getElementById("channels-insight").innerHTML=`<p><strong>📊 Resumo (Source/Medium):</strong> <strong>${topSM.name}</strong> é o canal de maior receita absoluta (${fmtMoney(topSM.revenue)}). Canais com durações altas indicam tráfego qualificado com alta intenção de compra.</p>
   <p><strong>💡 Insight:</strong> <em>Se</em> auditarmos as UTMs do tráfego "(not set)", <em>então</em> teremos visibilidade real do volume que está atualmente não atribuído, <em>porque</em> esse volume provavelmente pertence a canais pagos mal tagueados.</p>`;
@@ -414,6 +426,8 @@ function renderChannels(data) {
     y: c.purchases / (c.pageviews || 1)
   }));
   requestAnimationFrame(() => {
+    renderScatterChart('chart-channel-groups-scatter', channelGroupsScatterData, 'Receita', 'Taxa Conversão');
+    renderComboChart('chart-channel-groups-combo', channelGroupsComboData, 'Sessões', 'Taxa Conversão');
     renderScatterChart('chart-channels-scatter', channelScatterData, 'Receita', 'Taxa Conversão');
     renderComboChart('chart-channels-combo', channelComboData, 'Sessões', 'Taxa Conversão');
   });
