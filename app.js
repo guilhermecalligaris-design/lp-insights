@@ -401,6 +401,22 @@ function renderChannels(data) {
   const topSM = [...data.current.channels].sort((a,b)=>b.revenue-a.revenue)[0];
   if (topSM) document.getElementById("channels-insight").innerHTML=`<p><strong>📊 Resumo (Source/Medium):</strong> <strong>${topSM.name}</strong> é o canal de maior receita absoluta (${fmtMoney(topSM.revenue)}). Canais com durações altas indicam tráfego qualificado com alta intenção de compra.</p>
   <p><strong>💡 Insight:</strong> <em>Se</em> auditarmos as UTMs do tráfego "(not set)", <em>então</em> teremos visibilidade real do volume que está atualmente não atribuído, <em>porque</em> esse volume provavelmente pertence a canais pagos mal tagueados.</p>`;
+
+  // Render charts
+  const channelScatterData = data.current.channels.map(c => ({
+    label: c.name,
+    x: c.revenue,
+    y: c.purchases / (c.pageviews || 1)
+  }));
+  const channelComboData = data.current.channels.map(c => ({
+    label: c.name,
+    x: c.sessions,
+    y: c.purchases / (c.pageviews || 1)
+  }));
+  requestAnimationFrame(() => {
+    renderScatterChart('chart-channels-scatter', channelScatterData, 'Receita', 'Taxa Conversão');
+    renderComboChart('chart-channels-combo', channelComboData, 'Sessões', 'Taxa Conversão');
+  });
 }
 
 // =====================================
@@ -559,6 +575,35 @@ function renderAudience(data) {
     <div class="top-flop-card flop"><h4>⚠️ Flop 5 Estados (Share Compras)</h4><ol>${flopShP.map(r=>`<li>${r.name}: ${pct1(r.purchases/tP)}</li>`).join("")}</ol>
     <div class="tf-action"><strong>Ação:</strong> Validar se o serviço está disponível nessas praças antes de investir em awareness.</div></div>
   </div>`;
+
+  // Render charts for regions and cities
+  const regionsScatterData = data.current.regions.map(r => ({
+    label: r.name,
+    x: r.revenue,
+    y: r.purchases / (r.sessions || 1)
+  }));
+  const regionsComboData = data.current.regions.map(r => ({
+    label: r.name,
+    x: r.sessions,
+    y: r.purchases / (r.sessions || 1)
+  }));
+  const citiesScatterData = data.current.cities.map(c => ({
+    label: c.name,
+    x: c.revenue,
+    y: c.purchases / (c.sessions || 1)
+  }));
+  const citiesComboData = data.current.cities.map(c => ({
+    label: c.name,
+    x: c.sessions,
+    y: c.purchases / (c.sessions || 1)
+  }));
+
+  requestAnimationFrame(() => {
+    renderScatterChart('chart-regions-scatter', regionsScatterData, 'Receita', 'Taxa Conversão');
+    renderComboChart('chart-regions-combo', regionsComboData, 'Sessões', 'Taxa Conversão');
+    renderScatterChart('chart-cities-scatter', citiesScatterData, 'Receita', 'Taxa Conversão');
+    renderComboChart('chart-cities-combo', citiesComboData, 'Sessões', 'Taxa Conversão');
+  });
 }
 
 // =====================================
@@ -587,6 +632,95 @@ function renderSegments(data) {
   document.getElementById("segments-grid").innerHTML = segs.map(s=>`
     <div class="segment-card"><div class="segment-icon">${s.icon}</div><div class="segment-title">${s.title}</div>
     <div class="segment-def">${s.def}</div><div class="segment-meta-item">📍 OMTM: ${s.m}</div><div class="segment-meta-item">🎯 ${s.a}</div></div>`).join("");
+}
+
+// =====================================
+// Charts Helper Functions
+// =====================================
+function renderScatterChart(canvasId, data, xLabel, yLabel) {
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if (!ctx) return;
+
+  const chartData = data.map(item => ({
+    x: item.x || 0,
+    y: item.y || 0,
+    label: item.label
+  }));
+
+  new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: `${xLabel} vs ${yLabel}`,
+        data: chartData,
+        backgroundColor: 'rgba(46, 203, 111, 0.6)',
+        borderColor: 'rgba(46, 203, 111, 1)',
+        borderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.raw.label}: ${fmt(ctx.raw.x)} × ${pct1(ctx.raw.y)}`
+          }
+        }
+      },
+      scales: {
+        x: { type: 'linear', position: 'bottom', title: { display: true, text: xLabel } },
+        y: { title: { display: true, text: yLabel } }
+      }
+    }
+  });
+}
+
+function renderComboChart(canvasId, data, barLabel, lineLabel) {
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if (!ctx) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.label),
+      datasets: [
+        {
+          type: 'bar',
+          label: barLabel,
+          data: data.map(d => d.x),
+          backgroundColor: 'rgba(59, 130, 246, 0.6)',
+          borderColor: 'rgba(59, 130, 246, 1)',
+          borderWidth: 1,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line',
+          label: lineLabel,
+          data: data.map(d => d.y * 100),
+          borderColor: 'rgba(46, 203, 111, 1)',
+          backgroundColor: 'transparent',
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: 'rgba(46, 203, 111, 1)',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: true } },
+      scales: {
+        y: { type: 'linear', position: 'left', title: { display: true, text: barLabel } },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: lineLabel + ' (%)' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
 }
 
 // =====================================
@@ -642,4 +776,21 @@ function renderProducts(data) {
     <div class="top-flop-card flop"><h4>⚠️ Flop Categorias (Receita)</h4><ol>${flopCR.map(c=>`<li>${c.name}: ${fmtMoney(c.revenue)} (${pct1(c.revenue/(catTR||1))})</li>`).join("")}</ol>
     <div class="tf-action"><strong>Ação:</strong> <em>Se</em> criarmos landing pages por categoria com USPs específicos, <em>então</em> esperamos +20% de CR por categoria.</div></div>
   </div>`;
+
+  // Render charts for products
+  const productsScatterData = data.current.products.map(p => ({
+    label: p.name,
+    x: p.revenue,
+    y: p.purchases / (p.views || 1)
+  }));
+  const productsComboData = data.current.products.map(p => ({
+    label: p.name,
+    x: p.views,
+    y: p.purchases / (p.views || 1)
+  }));
+
+  requestAnimationFrame(() => {
+    renderScatterChart('chart-products-scatter', productsScatterData, 'Receita', 'Taxa Conversão');
+    renderComboChart('chart-products-combo', productsComboData, 'Views', 'Taxa Conversão');
+  });
 }

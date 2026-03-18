@@ -127,6 +127,10 @@
         </table>
       </div>
       <div class="insight-box" id="channels-insight" style="margin-top:16px"></div>
+      <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-channels-scatter"></canvas></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-channels-combo"></canvas></div>
+      </div>
     </section>
 
     <!-- Seção 3: Golden Path -->
@@ -167,6 +171,14 @@
         </div>
       </div>
       <div id="audience-topflop" style="margin-top:16px"></div>
+      <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-regions-scatter"></canvas></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-regions-combo"></canvas></div>
+      </div>
+      <div style="margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-cities-scatter"></canvas></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-cities-combo"></canvas></div>
+      </div>
     </section>
 
     <!-- Seção 7: Perfil & Segments -->
@@ -189,6 +201,10 @@
         <tfoot id="products-tfoot"></tfoot></table>
       </div>
       <div id="products-topflop" style="margin-top:16px"></div>
+      <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-products-scatter"></canvas></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><canvas id="chart-products-combo"></canvas></div>
+      </div>
     </section>
 
     <!-- Seção 8b: Categorias -->
@@ -207,6 +223,7 @@
 
   </main>
   <footer class="footer"><p>allu Growth Partner Dashboard V6.2 · Dados: Google Analytics 4 (Real-time)</p></footer>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
