@@ -55,34 +55,47 @@ function andFilters(...filters) {
   return { andGroup: { expressions: valid } };
 }
 
-// ─── Allu Grouping Mapping ──────────────────────────────────
-const alluGroupingMap = {
-  'direct|(none)': 'Direto',
-  'google|cpc': 'Google Ads',
-  'meta|paid_social': 'Meta Ads',
-  'google|organic': 'Pesquisa Orgânica',
-  'parcerias|picpay': 'PicPay',
-  'ig|organic_social': 'Instagram',
-  'facebook|paid_social': 'Meta Ads',
-  'bing|organic': 'Pesquisa Orgânica',
-  'hs_email|email': 'CRM',
-  'tiktok|paid_social': 'TikTok Ads',
-  'site|organic_social': 'Site',
-  'crm|crm_email': 'CRM'
-};
-
+// ─── Allu Grouping Mapping (De-Para from CSV) ──────────────────
 function getAlluGrouping(sourceMedium) {
   if (!sourceMedium) return 'Outros';
-  const parts = sourceMedium.split(' / ');
-  if (parts.length < 2) return 'Outros';
-  const [source, medium] = parts;
-  const key = `${source}|${medium}`.toLowerCase();
-  for (const [pattern, grouping] of Object.entries(alluGroupingMap)) {
-    if (key.includes(pattern.split('|')[0])) {
-      const mediumPat = pattern.split('|')[1];
-      if (medium.toLowerCase().includes(mediumPat)) return grouping;
-    }
-  }
+  const [source, medium] = sourceMedium.split(' / ').map(s => s.trim().toLowerCase());
+
+  // Direct
+  if (source === 'direct') return 'Direto';
+
+  // Google Ads
+  if (source === 'google' && medium === 'cpc') return 'Google Ads';
+  if (source === 'google' && medium === 'organic') return 'Pesquisa Orgânica';
+
+  // Meta Ads
+  if ((source === 'meta' || source === 'facebook') && medium === 'paid_social') return 'Meta Ads';
+  if ((source === 'meta' || source === 'facebook') && medium === 'paid') return 'Meta Ads';
+  if ((source === 'ig') && (medium === 'paid' || medium === 'paid_social')) return 'Meta Ads';
+
+  // Organic Social
+  if (medium === 'organic_social') return 'Social Orgânico';
+  if (source === 'ig' && medium === 'organic_social') return 'Instagram';
+  if (source === 'instagram') return 'Instagram';
+
+  // Email
+  if (medium === 'email') return 'CRM';
+  if (source === 'hs_email') return 'CRM';
+  if (source === 'crm') return 'CRM';
+
+  // Search
+  if (source === 'bing' && medium === 'organic') return 'Pesquisa Orgânica';
+
+  // Partnerships
+  if (source === 'parcerias') return 'Parcerias';
+  if (medium === 'picpay') return 'PicPay';
+
+  // TikTok
+  if (source === 'tiktok') return 'TikTok Ads';
+
+  // Site
+  if (source === 'site') return 'Site';
+
+  // Default
   return 'Outros';
 }
 
@@ -413,8 +426,18 @@ app.get('/api/data', async (req, res) => {
 
     // Filter channels by alluGrouping if specified
     if (allu_grouping) {
+      console.log(`Filtrando por alluGrouping: ${allu_grouping}`);
+      console.log(`Canais antes: ${current.channels.length}, depois: ${current.channels.filter(ch => ch.alluGrouping === allu_grouping).length}`);
+
       current.channels = current.channels.filter(ch => ch.alluGrouping === allu_grouping);
       previous.channels = previous.channels.filter(ch => ch.alluGrouping === allu_grouping);
+
+      // Also filter channelGroups to show only the matched group
+      const matchedGroup = current.channels[0]?.group;
+      if (matchedGroup) {
+        current.channelGroups = current.channelGroups.filter(cg => cg.name === matchedGroup);
+        previous.channelGroups = previous.channelGroups.filter(cg => cg.name === matchedGroup);
+      }
     }
 
     const result = {

@@ -42,6 +42,7 @@ async function loadFilterOptions() {
     const alluSel = document.getElementById("filter-allu-grouping");
     if (alluSel) {
       alluSel.innerHTML = '<option value="">Todos</option>';
+      console.log('alluGroupings disponíveis:', data.alluGroupings);
       (data.alluGroupings || []).forEach(g => {
         const o = document.createElement("option"); o.value = g; o.textContent = g; alluSel.appendChild(o);
       });
@@ -112,6 +113,8 @@ async function applyFilters() {
 
   setLoading(true);
 
+  console.log('Filtros:', { alluGrouping, channel, source, campaign, category, product });
+
   const params = new URLSearchParams({ start, end, compare_mode: compare });
   if (alluGrouping) params.set("allu_grouping", alluGrouping);
   if (channel)  params.set("channel",  channel);
@@ -155,32 +158,51 @@ function setLoading(on) {
 function initTableSorting() {
   document.querySelectorAll(".data-table").forEach(table => {
     const headers = table.querySelectorAll("thead th");
+    let sortState = {}; // Track sort direction per column
+
     headers.forEach((header, colIdx) => {
+      header.style.cursor = "pointer";
       header.addEventListener("click", () => {
         const tbody = table.querySelector("tbody");
         if (!tbody) return;
         const rows = Array.from(tbody.querySelectorAll("tr"));
-        const isAsc = header.classList.contains("sortable-asc");
+
+        // Toggle sort direction
+        const isAsc = sortState[colIdx] === "asc";
+        sortState = {}; // Reset all
+        sortState[colIdx] = isAsc ? "desc" : "asc";
 
         // Remove sorting from all headers in this table
         table.querySelectorAll("th").forEach(h => h.classList.remove("sortable-asc", "sortable-desc"));
 
         // Sort rows
         rows.sort((a, b) => {
-          const aVal = a.cells[colIdx]?.textContent.trim() || "";
-          const bVal = b.cells[colIdx]?.textContent.trim() || "";
-          const aNum = parseFloat(aVal.replace(/[^\d.-]/g, ""));
-          const bNum = parseFloat(bVal.replace(/[^\d.-]/g, ""));
-          const isNum = !isNaN(aNum) && !isNaN(bNum);
-          const cmp = isNum ? aNum - bNum : aVal.localeCompare(bVal, "pt-BR");
-          return isAsc ? -cmp : cmp;
+          let aVal = (a.cells[colIdx]?.textContent || "").trim();
+          let bVal = (b.cells[colIdx]?.textContent || "").trim();
+
+          // Extract first line only (ignore delta/comparisons)
+          aVal = aVal.split("\n")[0].trim();
+          bVal = bVal.split("\n")[0].trim();
+
+          // Try to parse as number
+          const aNum = parseFloat(aVal.replace(/[^0-9,.-]/g, "").replace(",", "."));
+          const bNum = parseFloat(bVal.replace(/[^0-9,.-]/g, "").replace(",", "."));
+
+          let cmp = 0;
+          if (!isNaN(aNum) && !isNaN(bNum)) {
+            cmp = aNum - bNum;
+          } else {
+            cmp = aVal.localeCompare(bVal, "pt-BR");
+          }
+
+          return sortState[colIdx] === "asc" ? cmp : -cmp;
         });
 
         // Append sorted rows back
         rows.forEach(row => tbody.appendChild(row));
 
         // Add sorting indicator
-        header.classList.add(isAsc ? "sortable-desc" : "sortable-asc");
+        header.classList.add(sortState[colIdx] === "asc" ? "sortable-asc" : "sortable-desc");
       });
     });
   });
