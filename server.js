@@ -15,10 +15,11 @@ const PROPERTY_ID = '316747128';
 const analyticsClient = new BetaAnalyticsDataClient(
   process.env.GA4_PRIVATE_KEY
     ? {
+        credentials: {
+          client_email: process.env.GA4_CLIENT_EMAIL,
+          private_key: process.env.GA4_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        },
         projectId: process.env.GA4_PROJECT_ID,
-        keyId: process.env.GA4_PRIVATE_KEY_ID,
-        privateKey: process.env.GA4_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        clientEmail: process.env.GA4_CLIENT_EMAIL
       }
     : { keyFilename: path.join(__dirname, 'credentials.json') }
 );
