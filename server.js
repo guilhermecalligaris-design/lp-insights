@@ -181,7 +181,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
       dimensions: [{ name: 'itemName' }, { name: 'itemCategory' }],
       metrics: [
         { name: 'itemViews' }, { name: 'itemsPurchased' },
-        { name: 'itemRevenue' }, { name: 'averageSessionDuration' }
+        { name: 'itemRevenue' }
       ],
       orderBys: [{ metric: { metricName: 'itemRevenue' }, desc: true }],
       limit: 25,
@@ -306,7 +306,7 @@ async function fetchPeriod(startDate, endDate, { source, channel, campaign, cate
       purchases:   parseFloat(r.metricValues[1].value),
       revenue:     parseFloat(r.metricValues[2].value),
       engRate:     0.95,
-      duration:    parseFloat(r.metricValues[3].value)
+      duration:    kpis.avgDuration
     }));
 
   // ── Parse Categories ──────────────────────────────────────────
