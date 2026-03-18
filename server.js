@@ -440,7 +440,12 @@ app.get('/api/filters', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`\n✅ Allu GA4 Dashboard Server rodando`);
-  console.log(`   → Abra: http://localhost:${PORT}/index.html\n`);
-});
+// Local dev: start server directly. Vercel: export app as serverless function.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n✅ Allu GA4 Dashboard Server rodando`);
+    console.log(`   → Abra: http://localhost:${PORT}/index.html\n`);
+  });
+}
+
+module.exports = app;
